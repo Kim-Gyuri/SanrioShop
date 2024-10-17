@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sanrio Love</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script> <!-- Bootstrap JavaScript 추가 -->
+    <link href="/css/styles.css" rel="stylesheet" />
+    <script src="/js/item/category.js" defer></script>
+    <script src="/js/users/logout.js" defer></script>
+    <script src="/js/users/message.js" defer></script>
+
+</head>
+<body>
+<!-- Navigation-->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <div class="container px-4 px-lg-5">
+        <a id="logo-link" class="logo-style" href="#!">Sanrio Love</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation"><span class="navbar-toggler-icon"></span></button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdown1" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">판매</a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown1">
+                        <li><a class="dropdown-item" href="/view/write/item">상품 등록</a></li>
+                        <li><a class="dropdown-item" href="/view/sale">판매 상품 리스트</a></li>
+                    </ul>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" id="navbarDropdown2" href="#" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">검색</a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdown2">
+                        <li class="dropdown-submenu-made">
+                            <a class="dropdown-item dropdown-toggle" data-category="POPULAR_SEARCH" href="#">인기 검색어</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" data-category="POPULAR_SEARCH" data-subcategory="DOLL" href="#">인형</a></li>
+                                <li><a class="dropdown-item" data-category="POPULAR_SEARCH" data-subcategory="KEYRING_CHARM" href="#">키링</a></li>
+                                <li><a class="dropdown-item" data-category="POPULAR_SEARCH" data-subcategory="BROOCH_BADGE" href="#">브로치/뱃지</a></li>
+                                <li><a class="dropdown-item" data-category="POPULAR_SEARCH" data-subcategory="ACRYLIC_STAND" href="#">아크릴 스탠드</a></li>
+                                <li><a class="dropdown-item" data-category="POPULAR_SEARCH" data-subcategory="CAPSULE_TOY" href="#">캡슐토이/가챠</a></li>
+                                <li><a class="dropdown-item" data-category="POPULAR_SEARCH" data-subcategory="FIGURE" href="#">피규어</a></li>
+                                <li><a class="dropdown-item" data-category="POPULAR_SEARCH" data-subcategory="CARD_TYPE" href="#">카드류</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown-submenu-made">
+                            <a class="dropdown-item dropdown-toggle" data-category="PHOTOCARD_DECOR" href="#">포카 꾸미기</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" data-category="PHOTOCARD_DECOR" data-subcategory="PHOTOCARD_HOLDER" href="#">포카카드 홀더</a></li>
+                                <li><a class="dropdown-item" data-category="PHOTOCARD_DECOR" data-subcategory="TOPLOADER_SLEEVE" href="#">탑로더/슬리브</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown-submenu-made">
+                            <a class="dropdown-item dropdown-toggle" data-category="DESK_DECOR" href="#">책상 꾸미기</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" data-category="DESK_DECOR" data-subcategory="DESK_FIGURE" href="#">피규어</a></li>
+                                <li><a class="dropdown-item" data-category="DESK_DECOR" data-subcategory="HUMIDIFIER" href="#">가습기</a></li>
+                                <li><a class="dropdown-item" data-category="DESK_DECOR" data-subcategory="KEYBOARD" href="#">키보드</a></li>
+                                <li><a class="dropdown-item" data-category="DESK_DECOR" data-subcategory="KEYCAP" href="#">키캡</a></li>
+                                <li><a class="dropdown-item" data-category="DESK_DECOR" data-subcategory="MOUSE" href="#">마우스</a></li>
+                                <li><a class="dropdown-item" data-category="DESK_DECOR" data-subcategory="DESK_CLOCK" href="#">탁상시계</a></li>
+                                <li><a class="dropdown-item" data-category="DESK_DECOR" data-subcategory="HANDY_FAN" href="#">핸디팬</a></li>
+                                <li><a class="dropdown-item" data-category="DESK_DECOR" data-subcategory="BLUETOOTH" href="#">블루투스</a></li>
+                                <li><a class="dropdown-item" data-category="DESK_DECOR" data-subcategory="MOUSE_PAD" href="#">마우스 패드</a></li>
+                                <li><a class="dropdown-item" data-category="DESK_DECOR" data-subcategory="AIR_FRESHENER" href="#">방향제</a></li>
+                                <li><a class="dropdown-item" data-category="DESK_DECOR" data-subcategory="USB_MULTI_HUB" href="#">USB 멀티허브</a></li>
+                            </ul>
+                        </li>
+                        <li class="dropdown-submenu-made">
+                            <a class="dropdown-item dropdown-toggle" data-category="JOURNAL_STATIONERY" href="#">다꾸/문구</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" data-category="JOURNAL_STATIONERY" data-subcategory="STICKER" href="#">스티커</a></li>
+                                <li><a class="dropdown-item" data-category="JOURNAL_STATIONERY" data-subcategory="MASKING_TAPE" href="#">마스킹테이프</a></li>
+                                <li><a class="dropdown-item" data-category="JOURNAL_STATIONERY" data-subcategory="MEMO_PAD" href="#">메모지</a></li>
+                                <li><a class="dropdown-item" data-category="JOURNAL_STATIONERY" data-subcategory="LETTER_PAPER" href="#">편지지</a></li>
+                                <li><a class="dropdown-item" data-category="JOURNAL_STATIONERY" data-subcategory="POSTCARD" href="#">엽서</a></li>
+                                <li><a class="dropdown-item" data-category="JOURNAL_STATIONERY" data-subcategory="STAMP" href="#">스탬프</a></li>
+                                <li><a class="dropdown-item" data-category="JOURNAL_STATIONERY" data-subcategory="DIARY" href="#">다이어리</a></li>
+                                <li><a class="dropdown-item" data-category="JOURNAL_STATIONERY" data-subcategory="CALENDAR" href="#">달력</a></li>
+                                <li><a class="dropdown-item" data-category="JOURNAL_STATIONERY" data-subcategory="NOTE" href="#">노트</a></li>
+                                <li><a class="dropdown-item" data-category="JOURNAL_STATIONERY" data-subcategory="FILE_BINDER" href="#">파일/바인더</a></li>
+                                <li><a class="dropdown-item" data-category="JOURNAL_STATIONERY" data-subcategory="PEN_HOLDER" href="#">펜꽂이</a></li>
+                                <li><a class="dropdown-item" data-category="JOURNAL_STATIONERY" data-subcategory="OFFICE_SUPPLIES" href="#">사무용품</a></li>
+                                <li><a class="dropdown-item" data-category="JOURNAL_STATIONERY" data-subcategory="PHONE_STRAP" href="#">휴대폰 스트랩</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="dropdown-submenu-made">
+                            <a class="dropdown-item dropdown-toggle" data-category="WRITING_INSTRUMENTS" href="#">필기류</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" data-category="WRITING_INSTRUMENTS" data-subcategory="BALLPOINT_PEN" href="#">볼펜</a></li>
+                                <li><a class="dropdown-item" data-category="WRITING_INSTRUMENTS" data-subcategory="MECHANICAL_PENCIL" href="#">샤프</a></li>
+                            </ul>
+                        </li>
+
+                        <li class="dropdown-submenu-made">
+                            <a class="dropdown-item dropdown-toggle" data-category="ACCESSORIES" href="#">소품</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" data-category="ACCESSORIES" data-subcategory="BALLPOINT_PEN" href="#">헤어템</a></li>
+                                <li><a class="dropdown-item" data-category="ACCESSORIES" data-subcategory="MIRROR" href="#">거울</a></li>
+                                <li><a class="dropdown-item" data-category="ACCESSORIES" data-subcategory="WALLET" href="#">지갑</a></li>
+                                <li><a class="dropdown-item" data-category="ACCESSORIES" data-subcategory="BAG" href="#">가방</a></li>
+                                <li><a class="dropdown-item" data-category="ACCESSORIES" data-subcategory="STORAGE_ORGANIZATION" href="#">수납/정리</a></li>
+                                <li><a class="dropdown-item" data-category="ACCESSORIES" data-subcategory="CUSHION_BLANKET" href="#">쿠션/담요</a></li>
+                                <li><a class="dropdown-item" data-category="ACCESSORIES" data-subcategory="MAGNET" href="#">자석</a></li>
+                                <li><a class="dropdown-item" data-category="ACCESSORIES" data-subcategory="POUCH_CASE" href="#">파우치/케이스</a></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+            <div class="ml-auto">
+                <div class="form-inline">
+                    <form class="btn-custom">
+                        <a href="/view/user/order" data-bs-toggle="tooltip" data-bs-placement="top" title="주문 조회"><i class="bi-cart me-1"></i></a>
+                    </form>
+                    <form class="btn-custom">
+                        <a href="/view/user/wish" data-bs-toggle="tooltip" data-bs-placement="top" title="찜 리스트"><i class="bi-heart me-1"></i></a>
+                    </form>
+
+                    <!-- 알림 -->
+                    <form class="btn-custom" id="notification-button">
+                        <i class="bi-bell me-2" href="#" data-toggle="tooltip" data-placement="top" title="알림"></i>
+                        <span id="notification-count" class="badge-custom bg-dark text-white ms-1 rounded-pill">0</span>
+                    </form>
+
+                    <!-- 모달 구조 -->
+                    <div class="modal fade" id="notificationModal" tabindex="-1" role="dialog" aria-labelledby="notificationModalLabel" aria-hidden="true">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="notificationModalLabel">알림 메시지</h5>
+                                    <!-- 닫기 버튼 -->
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body" id="notification-list">
+                                    <!-- 알림 메시지 목록이 여기에 표시됩니다. -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dropdown">
+                        <button class="btn btn-custom" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="bi-person me-1" data-bs-toggle="tooltip" data-bs-placement="top" title="프로필◦로그아웃"></i>
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                            <li><a class="dropdown-item" href="/view/update/user">프로필 편집</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="logout()">로그아웃</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Product section -->
+<section class="py-5">
+    <div class="container px-4 px-lg-5 my-5">
+        <div class="row gx-4 gx-lg-5 align-items-center">
+            <div class="col-md-6">
+                <img class="card-img-top-main-view mb-5 mb-md-0" src="" alt="..." />
+            </div>
+            <div class="col-md-6">
+                <div class="small mb-1">홈 > </div>
+                <h1 class="fw-normal mb-1"></h1>
+                <span class="product-price"></span>
+                <p class="lead"></p>
+                <br>
+                <div class="small mb-1">현재 <span id="like-count">0</span>명이 찜한 상품입니다</div>
+                <br>
+                <div class="d-flex">
+                    <!-- 찜 요청 -->
+                    <button id="wish-button" class="btn flex-shrink-0 btn-spacing" data-id="" data-wished="">찜하기</button>
+
+                    <!-- 주문요청 -->
+                    <button id="cart-button" class="btn btn-outline-dark flex-shrink-0" type="button">
+                        <i class="bi-cart-fill me-1"></i>
+                    </button>
+                </div>
+                <br>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Image section -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row gx-4 gx-lg-5 row-cols-1 justify-content-center align-items-center">
+            <div class="col text-center mb-5">
+                <h6>상품 상세이미지</h6>
+            </div>
+            <br>
+            <!-- 이미지가 동적으로 추가될 위치 -->
+            <div id="image-container" class="row gx-4 gx-lg-5 row-cols-1 justify-content-center align-items-center"></div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // 페이지가 로드된 후에 AJAX 호출 및 데이터 로드
+    document.addEventListener('DOMContentLoaded', function () {
+        let accessToken = localStorage.getItem('accessToken');
+        accessToken = accessToken ? accessToken.trim() : '';
+
+        let itemId = localStorage.getItem('selectedItemId');
+
+        if (!itemId) {
+            console.error('선택된 상품 ID가 없습니다.');
+            return;
+        }
+
+        // 상품 정보를 가져오기 위한 AJAX 호출
+        $.ajax({
+            url: '/api/items/product/' + itemId,
+            method: 'GET',
+            headers: {
+                'Authorization': accessToken
+            },
+            success: function(data) {
+                // 메인 이미지와 텍스트 설정
+                $('.card-img-top-main-view').attr('src', data.thumbnail);
+                $('.small.mb-1').first().text('홈 > ' + data.sanrioCharacter);
+                $('.fw-normal.mb-1').text(data.nameKor);
+                $('.product-price').text(data.price + '원');
+                $('.lead').text(data.description);
+                $('#like-count').text(data.likeCount);
+
+                // 찜하기 버튼 설정
+                const isWished = data.likedByUser;
+                const buttonClass = isWished ? 'btn-danger' : 'btn-outline-dark';
+                const buttonText = isWished ? '찜 취소' : '찜하기';
+
+                const wishButton = $('#wish-button');
+                wishButton
+                    .data('id', data.id)
+                    .data('wished', isWished)
+                    .removeClass('btn-danger btn-outline-dark')
+                    .addClass(buttonClass)
+                    .text(buttonText);
+
+                // 장바구니 버튼 상태 설정
+                const cartButton = $('#cart-button');
+                console.log("is ordered", data.orderedByUser);
+                if (data.orderedByUser) {
+                     console.log('Product is ordered by user'); // 디버깅
+                    cartButton.text('이미 거래 중인 상품입니다').prop('disabled', true);
+                } else {
+                    cartButton.text('장바구니 담기').prop('disabled', false);
+                }
+
+                // 이미지 리스트를 동적으로 추가
+                if (data.imgList && data.imgList.length > 0) {
+                    let imageContainer = $('#image-container');
+                    imageContainer.empty(); // 기존 이미지를 비우기
+
+                    data.imgList.forEach(function(imgSrc) {
+                        // 새로운 div.col을 생성
+                        let colDiv = $('<div>', { class: 'col text-center mb-5' });
+
+                        // 새로운 img 태그를 생성
+                        let imgTag = $('<img>', {
+                            class: 'card-img-top-made',
+                            src: imgSrc,
+                            alt: '상품 이미지'
+                        });
+
+                        // img 태그를 colDiv에 추가
+                        colDiv.append(imgTag);
+
+                        // colDiv를 imageContainer에 추가
+                        imageContainer.append(colDiv);
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('상품 정보를 가져오는 데 오류가 발생했습니다:', error);
+            }
+        });
+
+        // 찜하기 버튼 클릭 이벤트
+        $(document).on('click', '#wish-button', function(event) {
+            event.preventDefault();
+            const button = $(this);
+            const itemId = button.data('id');
+            let isWished = button.data('wished');
+            let likeCount = parseInt($('#like-count').text(), 10);
+
+            if (!accessToken) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+
+            if (!itemId) {
+                alert('상품 ID가 유효하지 않습니다.');
+                return;
+            }
+
+            const url = isWished ? `/api/wish/wishItem/${itemId}` : '/api/wish';
+            const method = isWished ? 'DELETE' : 'POST';
+            const data = isWished ? null : JSON.stringify({ id: itemId }); // DELETE일 때는 데이터 필요 없음, POST일 때는 JSON 데이터 전송
+
+            $.ajax({
+                url: url,
+                method: method,
+                headers: {
+                    'Authorization': accessToken
+                },
+                contentType: 'application/json',
+                data: data,
+                success: function(response) {
+                    console.log("Like count from response:", response.likeCount);
+
+                    const newLikeCount = response.likeCount;
+                    $('#like-count').text(`${newLikeCount}`);
+
+                    if (isWished) {
+                        button.removeClass('btn-danger').addClass('btn-outline-dark').text('찜하기').data('wished', false);
+                    } else {
+                        button.removeClass('btn-outline-dark').addClass('btn-danger').text('찜 취소').data('wished', true);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+                    alert(`${isWished ? '찜 취소' : '찜하기'} 요청 중 오류가 발생했습니다.`);
+                }
+            });
+        });
+
+        // 장바구니 버튼 클릭 이벤트
+        $(document).on('click', '#cart-button', function(event) {
+            event.preventDefault();
+            const itemId = localStorage.getItem('selectedItemId');
+            let accessToken = localStorage.getItem('accessToken');
+            accessToken = accessToken ? accessToken.trim() : '';
+
+            if (!accessToken) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+
+            if (!itemId) {
+                alert('상품 ID가 유효하지 않습니다.');
+                return;
+            }
+
+            $.ajax({
+                url: '/api/orders',
+                method: 'POST',
+                headers: {
+                    'Authorization': accessToken
+                },
+                contentType: 'application/json',
+                data: JSON.stringify({ id: itemId }),
+                success: function(response) {
+                    // 장바구니 추가 성공 시 응답 처리
+                    alert('장바구니에 상품이 추가되었습니다.');
+
+                    const cartButton = $('#cart-button');
+                    cartButton.text('이미 거래 중인 상품입니다').prop('disabled', true);
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', status, error);
+
+                    // 상태 코드가 400일 때 '이미 거래 중인 상품입니다'로 알림
+                    if (xhr.status === 400) {
+                        alert('이미 거래 중인 상품입니다');
+                    } else {
+                        alert('장바구니에 상품을 추가하는 중 오류가 발생했습니다.');
+                    }
+                }
+            });
+        });
+    });
+</script>
+
+
+<script>
+        // Initialize all tooltips
+        document.addEventListener('DOMContentLoaded', function () {
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+
+        $('#logo-link').on('click', function(event) {
+            event.preventDefault();
+
+            // 페이지 이동
+            window.location.href = '/view/home';
+        });
+
+</script>
+
+
+</body>
+</html>

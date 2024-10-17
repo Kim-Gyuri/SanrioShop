@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인</title>
+    <link href="/css/login.css" rel="stylesheet" />
+
+</head>
+<body>
+<section class="login-form">
+    <h1 class="logo-style">Sanrio Love</h1>
+    <form action="">
+        <div class="int-area">
+            <input type="text" name="email" id="email" autocomplete="off" required>
+            <label for="email">EMAIL</label>
+        </div>
+        <div class="int-area">
+            <input type="password" name="password" id="password" autocomplete="off" required>
+            <label for="password">PASSWORD</label>
+        </div>
+        <div class="btn-area">
+            <button id="btn" type="submit">LOGIN</button>
+
+        </div>
+    </form>
+    <div class="caption">
+        <a href="/view/signUp">회원가입</a>
+    </div>
+
+    <div class="caption-made">
+        <a href="#" data-email="wolf1@naver.com" data-password="1234">예시 회원1</a>
+        <a href="#" data-email="nayeon@naver.com" data-password="1234">예시 회원2</a>
+    </div>
+</section>
+
+<script src="/js/users/login.js"></script>
+</body>
+</html>

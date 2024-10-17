@@ -1,0 +1,109 @@
+body {
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+p,
+span {
+  margin: 0;
+}
+
+a {
+  color: black;
+}
+
+img {
+  display: block;
+  width: 80px;
+  height: 80px;
+  margin: auto;
+}
+
+.order {
+  width: 80%;
+  margin: auto;
+  padding: 30px;
+}
+
+.order ul {
+  background-color: whitesmoke;
+  padding: 30px;
+  margin-bottom: 50px;
+  border: whitesmoke solid 1px;
+  border-radius: 5px;
+  font-size: 13px;
+  font-weight: 300;
+}
+
+.order ul :first-child {
+  color: limegreen;
+}
+
+table {
+  border-top: solid 1.5px black;
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 14px;
+}
+
+thead {
+  text-align: center;
+  font-weight: bold;
+}
+
+thead th {
+  display: flex;
+  justify-content: center; /* 수평 중앙 정렬 */
+  align-items: center; /* 수직 중앙 정렬 */
+  padding: 15px; /* 셀 내 여백 추가 */
+  border-bottom: 1px solid lightgrey; /* 하단 테두리 추가 */
+}
+
+tbody {
+  font-size: 12px;
+}
+
+td {
+  padding: 15px 0px;
+  border-bottom: 1px solid lightgrey;
+  text-align: center; /* 수평 중앙 정렬 */
+  vertical-align: middle; /* 수직 중앙 정렬 */
+  align-items: center; /* 수직 중앙 정렬 */
+  justify-content: center; /* 수평 중앙 정렬 (선택 사항) */
+}
+
+.order__list__detail td {
+  vertical-align: middle !important;
+}
+
+
+.order__list__detail :nth-child(3) {
+  vertical-align: top;
+}
+
+.order__list__detail :nth-child(3) a {
+  font-size: 12px;
+}
+
+.order__list__detail :nth-child(3) p {
+  margin-top: 6px;
+  font-weight: bold;
+}
+
+.order__list__smartstore {
+  font-size: 12px;
+  color: gray;
+}
+
+.order__list__option {
+  vertical-align: top;
+  padding: 20px;
+}
+
+.order__list__option p {
+  margin-bottom: 25px;
+  position: relative;
+}
