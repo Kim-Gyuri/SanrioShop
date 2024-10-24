@@ -39,7 +39,7 @@ public class UserService {
     /**
      * 회원가입
      */
-    public void signup(SignupRequest request) {
+    public Long signup(SignupRequest request) {
         if (checkEmailDuplicate(request.getEmail())) {
             throw new DuplicateEmailException();
         }
@@ -54,6 +54,8 @@ public class UserService {
         // 찜바구니 생성
         User user = userRepository.save(request.ofEntity());
         createRequiredResources(user);
+
+        return user.getId();
     }
 
     // 유저 회원가입 시 필요한 세팅 : 찜하기 객체

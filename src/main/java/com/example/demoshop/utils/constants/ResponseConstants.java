@@ -13,6 +13,7 @@ public class ResponseConstants {
     public static final ResponseEntity<Void> BAD_REQUEST = ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
 
     public static final ResponseEntity<String> DUPLICATION_EMAIL = new ResponseEntity<>("중복된 이메일입니다.", HttpStatus.CONFLICT);
+    public static final ResponseEntity<String> DUPLICATION_NICK = new ResponseEntity<>("중복된 닉네임입니다.", HttpStatus.CONFLICT);
     public static final ResponseEntity<String> ITEM_NOT_FOUND = new ResponseEntity<>("존재하지 않는 상품입니다.", HttpStatus.BAD_REQUEST);
     public static final ResponseEntity<String> TAG_NOT_FOUND = new ResponseEntity<>("존재하지 않는 태그 정보입니다.", HttpStatus.BAD_REQUEST);
     public static final ResponseEntity<String> TRADE_ALREADY_EXISTS_EXCEPTION = new ResponseEntity<>("이미 거래 중인 상품입니다.", HttpStatus.BAD_REQUEST);

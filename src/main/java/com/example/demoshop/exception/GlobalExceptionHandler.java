@@ -8,6 +8,7 @@ import com.example.demoshop.exception.token.RefreshTokenNotFoundException;
 import com.example.demoshop.exception.token.TokenNotFoundException;
 import com.example.demoshop.exception.users.DuplicateEmailException;
 import com.example.demoshop.exception.token.InvalidTokenException;
+import com.example.demoshop.exception.users.DuplicateNicknameException;
 import com.example.demoshop.exception.users.NotAuthorizedException;
 import com.example.demoshop.exception.users.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,12 @@ public class GlobalExceptionHandler {
     public final ResponseEntity<String> handleDuplicateEmailException(DuplicateEmailException exception) {
         log.info("중복된 이메일입니다.", exception);
         return DUPLICATION_EMAIL;
+    }
+
+    @ExceptionHandler(DuplicateNicknameException.class)
+    public final ResponseEntity<String> handleDuplicateNicknameException(DuplicateNicknameException exception) {
+        log.info("중복된 닉네임입니다.", exception);
+        return DUPLICATION_NICK;
     }
 
     @ExceptionHandler(SaleItemAlreadyExistsException.class)
