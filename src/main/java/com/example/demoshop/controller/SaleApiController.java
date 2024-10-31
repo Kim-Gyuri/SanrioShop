@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,6 +34,7 @@ public class SaleApiController {
 
 
     // 주문요청
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/orders")
     public void addWishList(@AuthenticationPrincipal User user, @RequestBody IdRequest idRequest) {
         saleItemService.contactTrade(user.getEmail(), idRequest.getId());

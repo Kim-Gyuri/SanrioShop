@@ -6,22 +6,20 @@ import com.example.demoshop.domain.item.common.SanrioCharacters;
 import com.example.demoshop.domain.item.common.SubCategory;
 import com.example.demoshop.domain.item.common.TagOption;
 import com.example.demoshop.domain.users.user.User;
-import com.example.demoshop.domain.wishList.WishItem;
-import com.example.demoshop.domain.wishList.WishList;
+
 import com.example.demoshop.exception.users.UserNotFoundException;
-import com.example.demoshop.exception.wishList.WishItemNotFoundException;
+
 import com.example.demoshop.request.item.CreateItemRequest;
 import com.example.demoshop.exception.item.ItemNotFoundException;
 import com.example.demoshop.repository.item.ItemRepository;
 import com.example.demoshop.repository.users.UserRepository;
-import com.example.demoshop.repository.wishList.WishItemRepository;
-import com.example.demoshop.repository.wishList.WishListRepository;
+
 import com.example.demoshop.request.users.SignupRequest;
 import com.example.demoshop.response.wishList.WishItemResponse;
 import com.example.demoshop.service.item.ItemService;
 import com.example.demoshop.service.users.UserService;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

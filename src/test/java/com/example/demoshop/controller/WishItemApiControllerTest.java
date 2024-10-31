@@ -6,13 +6,17 @@ import com.example.demoshop.domain.item.common.SanrioCharacters;
 import com.example.demoshop.domain.item.common.SubCategory;
 import com.example.demoshop.domain.item.common.TagOption;
 import com.example.demoshop.domain.users.user.User;
+import com.example.demoshop.domain.wishList.WishItem;
 import com.example.demoshop.repository.item.ItemRepository;
 import com.example.demoshop.repository.users.UserRepository;
+import com.example.demoshop.repository.wishList.WishItemRepository;
 import com.example.demoshop.request.item.CreateItemRequest;
-import com.example.demoshop.request.item.UpdateItemRequest;
+import com.example.demoshop.request.item.IdRequest;
 import com.example.demoshop.request.users.SignupRequest;
 import com.example.demoshop.service.item.ItemService;
 import com.example.demoshop.service.users.UserService;
+import com.example.demoshop.service.wishList.WishListService;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -22,9 +26,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.Resource;
+
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.http.HttpMethod;
+
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -35,22 +39,20 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 
 @Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
-class ItemApiControllerTest {
+class WishItemApiControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -58,78 +60,81 @@ class ItemApiControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    ResourceLoader loader;
 
     @Autowired
-    private ItemService itemService;
+    private UserRepository userRepository;
 
     @Autowired
     private UserService userService;
 
     @Autowired
-    private UserDetailsService userDetailsService;
+    private WishItemRepository wishItemRepository;
+
+    @Autowired
+    private WishListService wishListService;
 
     @Autowired
     private ItemRepository itemRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private ItemService itemService;
+
+    @Autowired
+    private UserDetailsService userDetailsService;
 
 
     @BeforeEach
     void clean() {
         itemRepository.deleteAll();
+        wishItemRepository.deleteAll();
         userRepository.deleteAll();
     }
 
     @AfterEach
     void cleanAfter() {
         itemRepository.deleteAll();
+        wishItemRepository.deleteAll();
         userRepository.deleteAll();
     }
 
-
     @Test
-    @DisplayName("상품 등록")
-    void upload_item_success() throws Exception {
+    @DisplayName("찜 등록")
+    void add_wish_success() throws Exception {
         //given
         User user = getUser();
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
 
         CreateItemRequest itemRequest = getItemRequest();
-        List<MockMultipartFile> multipartFiles = getMockMultipartFiles();
+        List<MultipartFile> files = generateMultipartFileList();
 
-        MockMultipartFile request = new MockMultipartFile("itemCreate", null, "application/json", objectMapper.writeValueAsString(itemRequest).getBytes(StandardCharsets.UTF_8));
+        Long itemId = itemService.createItem(user, itemRequest, files);
+        IdRequest request = getRequest(itemId);
 
 
-        // when
-        mockMvc.perform(MockMvcRequestBuilders
-                .multipart(HttpMethod.POST, "/api/items")
-                .file(request)
-                .file(multipartFiles.get(0))
-                .file(multipartFiles.get(1))
-                .file(multipartFiles.get(2))
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
-                .with(SecurityMockMvcRequestPostProcessors.user(userDetails))
-        )
+
+        // When
+        mockMvc.perform(MockMvcRequestBuilders.post("/api/wish")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(SecurityMockMvcRequestPostProcessors.user(userDetails)))
                 .andExpect(status().isCreated())
                 .andDo(print());
 
 
         // then
-        Item item = itemRepository.findAll().get(0);
+        WishItem wishItem = wishItemRepository.findAll().get(0);
+        Item item = wishItem.getItem();
+
         assertEquals("산리오 한교동 가방고리 동전지갑", item.getNameKor());
-        assertEquals(SanrioCharacters.HANGYODON, item.getSanrioCharacters());
+        assertEquals(1, item.getLikeCount());
+
     }
 
-
     @Test
-    @DisplayName("상품 수정")
-    void update_item_success() throws Exception {
-
-        // given
+    @DisplayName("찜 취소")
+    void remove_wish_success() throws Exception {
+        //given
         User user = getUser();
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
 
@@ -137,75 +142,33 @@ class ItemApiControllerTest {
         List<MultipartFile> files = generateMultipartFileList();
 
         Long itemId = itemService.createItem(user, itemRequest, files);
+        IdRequest request = getRequest(itemId);
 
-        UpdateItemRequest updateItemRequest = updateItemRequest();
-        List<MockMultipartFile> multipartFiles = getMockMultipartFiles();
-
-        MockMultipartFile request = new MockMultipartFile("itemUpdate", null, "application/json", objectMapper.writeValueAsString(updateItemRequest).getBytes(StandardCharsets.UTF_8));
-
-        // when
-        mockMvc.perform(MockMvcRequestBuilders
-                        .multipart(HttpMethod.PATCH, "/api/items/" + itemId)
-                        .file(request)
-                        .file(multipartFiles.get(0))
-                        .file(multipartFiles.get(1))
-                        .file(multipartFiles.get(2))
-                        .accept(MediaType.APPLICATION_JSON)
-                        .contentType(MediaType.MULTIPART_FORM_DATA_VALUE)
-                        .with(SecurityMockMvcRequestPostProcessors.user(userDetails))
-                )
-                .andExpect(status().isOk())
-                .andDo(print());
+        wishListService.markAsWished(user, itemId);
 
 
-        // then
-        Item item = itemRepository.findAll().get(0);
-        assertEquals(10000, item.getPrice());
-        assertEquals("10x10(cm) 크기.", item.getDescription());
-    }
 
-    @Test
-    @DisplayName("상품 삭제")
-    void delete_item_success() throws Exception {
-        // given
-        User user = getUser();
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-
-        CreateItemRequest itemRequest = getItemRequest();
-        List<MultipartFile> files = generateMultipartFileList();
-
-        Long itemId = itemService.createItem(user, itemRequest, files);
-
-        // when
-        mockMvc.perform(MockMvcRequestBuilders.delete("/api/items/" + itemId)
+        // When
+        mockMvc.perform(MockMvcRequestBuilders.delete("/api/wish/wishItem/" + itemId)
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
-                .with(SecurityMockMvcRequestPostProcessors.user(userDetails))
-                )
+                        .content(objectMapper.writeValueAsString(request))
+                        .with(SecurityMockMvcRequestPostProcessors.user(userDetails)))
                 .andExpect(status().isOk())
                 .andDo(print());
 
 
         // then
-        assertThat(itemRepository.findById(itemId)).isEmpty();
+        Item item = itemRepository.findAll().get(0);
+
+        assertEquals(0, item.getLikeCount());
 
     }
 
-
-    private static UpdateItemRequest updateItemRequest() {
-        UpdateItemRequest updateItemRequest = UpdateItemRequest.builder()
-                .nameKor("산리오 한교동 가방고리 동전지갑")
-                .price(10000)
-                .description("10x10(cm) 크기.")
-                .sanrioCharacters(SanrioCharacters.HANGYODON)
-                .mainCategory(MainCategory.ACCESSORIES)
-                .subCategory(SubCategory.WALLET)
+    private IdRequest getRequest(Long itemId) {
+        return IdRequest.builder()
+                .id(itemId)
                 .build();
-
-        List<String> userDefinedTagNames_update = List.of("부들부들한 촉감");
-        updateItemRequest.setUserDefinedTagNames(userDefinedTagNames_update);
-
-        return updateItemRequest;
     }
 
     private User getUser() {
@@ -243,22 +206,6 @@ class ItemApiControllerTest {
         return createItemRequest;
     }
 
-    private List<MockMultipartFile> getMockMultipartFiles() throws IOException {
-        List<MockMultipartFile> multipartFiles = new ArrayList<>();
-        Resource res1 = loader.getResource("classpath:/static/images/pochaco.png");
-        Resource res2 = loader.getResource("classpath:/static/images/my_melody.png");
-        Resource res3 = loader.getResource("classpath:/static/images/kuromi.png");
-        MockMultipartFile files1 = new MockMultipartFile("productImage", "pochaco.png", "multipart/form-data", res1.getInputStream());
-        MockMultipartFile files2 = new MockMultipartFile("productImage", "my_melody.png", "multipart/form-data", res2.getInputStream());
-        MockMultipartFile files3 = new MockMultipartFile("productImage", "kuromi.png", "multipart/form-data", res3.getInputStream());
-        multipartFiles.add(files1);
-        multipartFiles.add(files2);
-        multipartFiles.add(files3);
-
-        return multipartFiles;
-    }
-
-
     private static List<MultipartFile> generateMultipartFileList() {
         List<MultipartFile> multipartFileList = new ArrayList<>();
 
@@ -272,6 +219,5 @@ class ItemApiControllerTest {
 
         return multipartFileList;
     }
-
 
 }

@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +25,7 @@ public class WishItemApiController {
     private final WishListService wishListService;
     private final PagedResourcesAssembler<WishlistItemDto> pagedResourcesAssembler;
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/wish")
     public WishItemResponse addWishList(@AuthenticationPrincipal User user, @RequestBody IdRequest idRequest) {
         return wishListService.markAsWished(user, idRequest.getId());

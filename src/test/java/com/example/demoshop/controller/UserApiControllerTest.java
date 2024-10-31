@@ -80,14 +80,13 @@ class UserApiControllerTest {
         SignupRequest signupRequest = getSignupRequest();
 
         // when
-        mockMvc.perform(MockMvcRequestBuilders
-                .multipart(HttpMethod.POST, "/user/signUp")
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(signupRequest))
-                )
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/signUp")
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(signupRequest)))
                 .andExpect(status().isCreated())
                 .andDo(print());
+
 
         // then
         User user = userRepository.findAll().get(0);
@@ -106,13 +105,14 @@ class UserApiControllerTest {
 
 
         // when-then
-        mockMvc.perform(MockMvcRequestBuilders
-                        .multipart(HttpMethod.POST, "/user/signUp")
-                        .contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/signUp")
+                        .accept(MediaType.APPLICATION_JSON_UTF8)  // 응답 인코딩을 UTF-8로 설정
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)  // 요청 인코딩을 UTF-8로 설정
                         .content(objectMapper.writeValueAsString(signupRequest)))
                 .andExpect(status().isConflict()) // 중복된 이메일로 인해 409(CONFLICT) 상태 코드 반환
                 .andExpect(content().string("중복된 이메일입니다.")) // 응답 메시지 확인
                 .andDo(print());
+
     }
 
     @Test
@@ -126,13 +126,15 @@ class UserApiControllerTest {
 
 
         // when-then
-        mockMvc.perform(MockMvcRequestBuilders
-                        .multipart(HttpMethod.POST, "/user/signUp")
-                        .contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(MockMvcRequestBuilders.post("/user/signUp")
+                        .accept(MediaType.APPLICATION_JSON_UTF8)  // 응답 인코딩을 UTF-8로 설정
+                        .contentType(MediaType.APPLICATION_JSON_UTF8)  // 요청 인코딩을 UTF-8로 설정
                         .content(objectMapper.writeValueAsString(signupRequest)))
-                .andExpect(status().isConflict()) // 중복된 닉네임으로 인해 409(CONFLICT) 상태 코드 반환
-                .andExpect(content().string("중복된 닉네임입니다.")) // 응답 메시지 확인
+                .andExpect(status().isConflict())
+                .andExpect(content().string("중복된 닉네임입니다."))
                 .andDo(print());
+
+
     }
 
     @Test
@@ -145,15 +147,15 @@ class UserApiControllerTest {
         NicknameUpdate nickRequest = getNickRequest();
 
         // when
-        mockMvc.perform(MockMvcRequestBuilders
-                        .multipart(HttpMethod.PATCH, "/user/nickname")
+        mockMvc.perform(MockMvcRequestBuilders.patch("/user/nickname")
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(nickRequest))
-                        .with(SecurityMockMvcRequestPostProcessors.user(userDetails))
+                .with(SecurityMockMvcRequestPostProcessors.user(userDetails))
                 )
                 .andExpect(status().isOk())
                 .andDo(print());
+
 
         // then
         User findUser = userRepository.findAll().get(0);
