@@ -205,7 +205,7 @@ class SaleApiControllerTest {
 
 
         // 삭제 전 잠시 대기
-        Thread.sleep(1000);
+        Thread.sleep(2000);
 
         // ExecutorService 종료
         executorService.shutdown();
