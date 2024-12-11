@@ -8,20 +8,22 @@ import com.example.demoshop.domain.item.common.TagOption;
 import com.example.demoshop.domain.transaction.SaleItem;
 
 import com.example.demoshop.domain.users.user.User;
+import com.example.demoshop.exception.sale.SaleItemNotFoundException;
 import com.example.demoshop.request.item.CreateItemRequest;
 import com.example.demoshop.exception.item.ItemNotFoundException;
 import com.example.demoshop.repository.item.ItemRepository;
 import com.example.demoshop.repository.sale.SaleItemRepository;
 import com.example.demoshop.repository.users.UserRepository;
-
 import com.example.demoshop.service.item.ItemService;
 import lombok.extern.slf4j.Slf4j;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -53,9 +55,37 @@ class SaleItemServiceTest {
 
 
 
+    @AfterEach
+    void cleanAfter() {
+        saleItemRepository.deleteAll();
+        itemRepository.deleteAll();
+        userRepository.deleteAll();
+    }
+
+    @Transactional
+    @Test
+    @DisplayName("주문요청 - 성공 케이스")
+    void order_success() throws IOException {
+        // given
+        User uploader = getUserDto("bdd6");
+        Long itemId = uploadItem(uploader);
+        User buyer = getUserDto("cocoa6");
+
+        // when
+        Long saleId = saleItemService.contactTrade(buyer.getEmail(), itemId);
+
+        // then
+        SaleItem saleItem = saleItemRepository.findById(saleId).orElseThrow(SaleItemNotFoundException::new);
+
+        assertEquals(18000, saleItem.getPrice());
+        assertEquals("cocoa6", saleItem.getBuyer().getNickname());
+    }
+
+
+
     @Test
     @DisplayName("동시 거래 요청 - 성공 케이스")
-    void concurrentContactTrade_success_V2() throws IOException, InterruptedException {
+    void concurrentContactTrade_success() throws IOException, InterruptedException {
 
         // given
         User uploader = getUserDto("bdd6");
@@ -75,6 +105,7 @@ class SaleItemServiceTest {
         var endLatch = new CountDownLatch(2);
 
 
+        // when
         // 구매 작업을 수행하는 Runnable 생성
         Runnable task1 = () -> {
             try {
@@ -105,25 +136,16 @@ class SaleItemServiceTest {
         startLatch.countDown(); // 모든 스레드가 동시에 시작하도록 래치를 낮춤
         endLatch.await(); // 모든 스레드의 작업이 끝날 때까지 대기
 
-        // Then
+        // then
         // 한 개의 주문만 성공했는지 확인
         assertEquals(1, failCount.get()); // 실패한 주문은 하나여야 함
 
         // 삭제 전 잠시 대기
         Thread.sleep(1000);
 
-        SaleItem saleItem = saleItemRepository.findByItem(item).orElseThrow(ItemNotFoundException::new);
-        saleItemRepository.delete(saleItem);
-        userRepository.delete(buyer1);
-        userRepository.delete(buyer2);
-        itemRepository.delete(item);
-        userRepository.delete(uploader);
-
-
         // ExecutorService 종료
         executorService.shutdown();
     }
-
 
 
     private Long uploadItem(User user) throws IOException {

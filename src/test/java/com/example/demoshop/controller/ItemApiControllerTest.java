@@ -6,6 +6,7 @@ import com.example.demoshop.domain.item.common.SanrioCharacters;
 import com.example.demoshop.domain.item.common.SubCategory;
 import com.example.demoshop.domain.item.common.TagOption;
 import com.example.demoshop.domain.users.user.User;
+import com.example.demoshop.exception.item.ItemNotFoundException;
 import com.example.demoshop.repository.item.ItemRepository;
 import com.example.demoshop.repository.users.UserRepository;
 import com.example.demoshop.request.item.CreateItemRequest;
@@ -119,7 +120,8 @@ class ItemApiControllerTest {
 
 
         // then
-        Item item = itemRepository.findAll().get(0);
+        Item item = itemRepository.findByNameKor(itemRequest.getNameKor()).orElseThrow(ItemNotFoundException::new);
+
         assertEquals("산리오 한교동 가방고리 동전지갑", item.getNameKor());
         assertEquals(SanrioCharacters.HANGYODON, item.getSanrioCharacters());
     }
@@ -159,7 +161,7 @@ class ItemApiControllerTest {
 
 
         // then
-        Item item = itemRepository.findAll().get(0);
+        Item item = itemRepository.findById(itemId).orElseThrow(ItemNotFoundException::new);
         assertEquals(10000, item.getPrice());
         assertEquals("10x10(cm) 크기.", item.getDescription());
     }

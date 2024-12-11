@@ -9,6 +9,7 @@ import com.example.demoshop.domain.users.user.User;
 
 import com.example.demoshop.exception.users.UserNotFoundException;
 
+import com.example.demoshop.repository.wishList.WishItemRepository;
 import com.example.demoshop.request.item.CreateItemRequest;
 import com.example.demoshop.exception.item.ItemNotFoundException;
 import com.example.demoshop.repository.item.ItemRepository;
@@ -20,6 +21,8 @@ import com.example.demoshop.service.item.ItemService;
 import com.example.demoshop.service.users.UserService;
 import lombok.extern.slf4j.Slf4j;
 
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +55,18 @@ class WishListServiceTest {
     WishListService wishListService;
 
     @Autowired
+    WishItemRepository wishItemRepository;
+
+    @Autowired
     UserService userService;
+
+
+    @AfterEach
+    void cleanAfter() {
+        wishItemRepository.deleteAll();
+        itemRepository.deleteAll();
+        userRepository.deleteAll();
+    }
 
 
     @Test
@@ -70,9 +84,6 @@ class WishListServiceTest {
         // then
         assertEquals(1, wishItemResponse.getLikeCount());
 
-        // clean
-        userRepository.delete(buyer);
-        userRepository.delete(uploader);
 
     }
 
@@ -94,9 +105,6 @@ class WishListServiceTest {
         // then
         assertEquals(0, wishItemResponse.getLikeCount());
 
-        // clean
-        userRepository.delete(buyer);
-        userRepository.delete(uploader);
     }
 
 

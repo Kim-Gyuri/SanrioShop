@@ -7,6 +7,8 @@ import com.example.demoshop.domain.item.common.SubCategory;
 import com.example.demoshop.domain.item.common.TagOption;
 import com.example.demoshop.domain.transaction.SaleItem;
 import com.example.demoshop.domain.users.user.User;
+import com.example.demoshop.exception.item.ItemNotFoundException;
+import com.example.demoshop.exception.sale.SaleItemNotFoundException;
 import com.example.demoshop.repository.item.ItemRepository;
 import com.example.demoshop.repository.sale.SaleItemRepository;
 import com.example.demoshop.repository.users.UserRepository;
@@ -122,11 +124,11 @@ class SaleApiControllerTest {
 
 
         // then
-        SaleItem saleItem = saleItemRepository.findAll().get(0);
-        Item item = saleItem.getItem();
+        Item item = itemRepository.findById(itemId).orElseThrow(ItemNotFoundException::new);
+        SaleItem sale = saleItemRepository.findByItem(item).orElseThrow(SaleItemNotFoundException::new);
 
         assertEquals("산리오 한교동 가방고리 동전지갑", item.getNameKor());
-        assertEquals("amy", saleItem.getBuyer().getNickname());
+        assertEquals("amy", sale.getBuyer().getNickname());
     }
 
     @Test
@@ -198,10 +200,12 @@ class SaleApiControllerTest {
 
         // Then
         // 한 개의 주문만 성공했는지 확인
-        SaleItem saleItem = saleItemRepository.findAll().get(0);
+        Item item = itemRepository.findById(itemId).orElseThrow(ItemNotFoundException::new);
+
+        SaleItem sale = saleItemRepository.findByItem(item).orElseThrow(SaleItemNotFoundException::new);
 
         assertEquals(1, failCount.get()); // 실패한 주문은 하나여야 함
-        assertNotNull(saleItem.getBuyer()); // 성공한 구매자 존재 확인
+        assertNotNull(sale.getBuyer()); // 성공한 구매자 존재 확인
 
 
         // 삭제 전 잠시 대기

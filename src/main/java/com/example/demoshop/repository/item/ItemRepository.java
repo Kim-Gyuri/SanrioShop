@@ -22,4 +22,7 @@ public interface ItemRepository extends JpaRepository<Item, Long>, SearchItemRep
     boolean existsByNameKor(String nameKor);
     boolean existsBySanrioCharacters(SanrioCharacters sanrioCharacters);
 
+    // for test
+    Optional<Item> findByNameKor(String itemName);
+
 }

@@ -1,5 +1,6 @@
 package com.example.demoshop.service.item;
 
+import com.example.demoshop.controller.dto.SearchCondition;
 import com.example.demoshop.domain.item.Item;
 import com.example.demoshop.domain.item.common.MainCategory;
 import com.example.demoshop.domain.item.common.SanrioCharacters;
@@ -7,19 +8,24 @@ import com.example.demoshop.domain.item.common.SubCategory;
 import com.example.demoshop.domain.item.common.TagOption;
 import com.example.demoshop.domain.users.user.User;
 import com.example.demoshop.exception.item.ItemNotFoundException;
+import com.example.demoshop.repository.sale.SaleItemRepository;
 import com.example.demoshop.request.item.CreateItemRequest;
 import com.example.demoshop.request.item.UpdateItemRequest;
 import com.example.demoshop.repository.item.ItemImgRepository;
 import com.example.demoshop.repository.item.ItemRepository;
 import com.example.demoshop.repository.users.UserRepository;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StopWatch;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -42,6 +48,18 @@ class ItemServiceTest {
     @Autowired
     private ItemRepository itemRepository;
 
+    @Autowired
+    SaleItemRepository saleItemRepository;
+
+
+
+
+    @AfterEach
+    void cleanAfter() {
+        saleItemRepository.deleteAll();
+        itemRepository.deleteAll();
+        userRepository.deleteAll();
+    }
 
 
 
@@ -59,9 +77,6 @@ class ItemServiceTest {
         assertEquals(SanrioCharacters.HANGYODON, item.getSanrioCharacters());
         assertEquals(4, item.getUserDefinedTagList().size());
 
-        // clean
-        itemRepository.delete(item);
-        userRepository.delete(user);
     }
 
 
@@ -84,10 +99,6 @@ class ItemServiceTest {
         assertEquals(5, findItem.getUserDefinedTagList().size());
 
 
-        // clean
-        itemRepository.deleteById(itemId);
-        userRepository.delete(user);
-
     }
 
 
@@ -107,8 +118,6 @@ class ItemServiceTest {
             itemRepository.findById(id).orElseThrow(ItemNotFoundException::new);
         });
 
-        // clean
-        userRepository.delete(user);
     }
 
 

@@ -7,6 +7,8 @@ import com.example.demoshop.domain.item.common.SubCategory;
 import com.example.demoshop.domain.item.common.TagOption;
 import com.example.demoshop.domain.users.user.User;
 import com.example.demoshop.domain.wishList.WishItem;
+import com.example.demoshop.exception.item.ItemNotFoundException;
+import com.example.demoshop.exception.wishList.WishItemNotFoundException;
 import com.example.demoshop.repository.item.ItemRepository;
 import com.example.demoshop.repository.users.UserRepository;
 import com.example.demoshop.repository.wishList.WishItemRepository;
@@ -27,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import org.springframework.core.io.ResourceLoader;
 
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -123,7 +124,11 @@ class WishItemApiControllerTest {
 
 
         // then
-        WishItem wishItem = wishItemRepository.findAll().get(0);
+        Item findItem = itemRepository.findById(itemId).orElseThrow(ItemNotFoundException::new);
+
+        WishItem wishItem = wishItemRepository.findByWishListAndItem(user.getWishList(), findItem)
+                .orElseThrow(() -> new WishItemNotFoundException("유효하지 않는 찜상품입니다."));
+
         Item item = wishItem.getItem();
 
         assertEquals("산리오 한교동 가방고리 동전지갑", item.getNameKor());
@@ -159,7 +164,7 @@ class WishItemApiControllerTest {
 
 
         // then
-        Item item = itemRepository.findAll().get(0);
+        Item item = itemRepository.findById(itemId).orElseThrow(ItemNotFoundException::new);
 
         assertEquals(0, item.getLikeCount());
 

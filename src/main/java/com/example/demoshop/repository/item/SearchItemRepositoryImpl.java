@@ -31,12 +31,12 @@ import org.springframework.data.domain.Pageable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.example.demoshop.domain.users.common.QUserBase.userBase;
 
 
 @Slf4j
 public class SearchItemRepositoryImpl implements SearchItemRepository {
     private final JPAQueryFactory queryFactory;
+
 
     public SearchItemRepositoryImpl(EntityManager em) {
         this.queryFactory = new JPAQueryFactory(em);
@@ -88,7 +88,7 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
     public SaleItemResponse findSaleItemDetail(Long itemId) {
         QSaleItem saleItem = QSaleItem.saleItem;
         QItem item = QItem.item;
-        QUser buyer =QUser.user;
+        QUser buyer = QUser.user;
 
         return queryFactory
                 .select(new QSaleItemResponse(buyer.email, saleItem.item.nameKor, saleItem.price))
@@ -201,8 +201,8 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
                 .leftJoin(item.recommendedTagList, recommendedTag)
                 .leftJoin(item.userDefinedTagList, userDefinedTag)
                 .where(whereClause)
-                .offset(pageable.getOffset())   // Set the starting point of the results
-                .limit(pageable.getPageSize())  // Set the number of results to return
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
                 .fetch();
 
         long total = queryFactory.select(item.id.countDistinct())
@@ -232,7 +232,7 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
         // 태그 검색 조건을 가져옵니다
         List<TagOption> tagOptions = TagOption.fromNameKor(condition.getTag());
         for (TagOption tagOption : tagOptions) {
-            log.info("tag name= {}",  tagOption.getNameKor());
+            log.info("tag name= {}", tagOption.getNameKor());
         }
 
         // 태그 검색 조건이 비어 있지 않은 경우
@@ -376,6 +376,7 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
         return new PageImpl<>(finalItems, pageable, total);
     }
 
+
     private static BooleanBuilder buildCategoryAndTagSearchCondition(CategoryCondition condition, QItem item, QRecommendedTag recommendedTag, QUserDefinedTag userDefinedTag) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
@@ -470,4 +471,5 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
                 .fetch();
 
     }
+
 }

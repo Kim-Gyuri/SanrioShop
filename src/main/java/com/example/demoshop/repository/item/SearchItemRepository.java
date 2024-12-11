@@ -44,4 +44,5 @@ public interface SearchItemRepository {
     Page<ThumbnailItemDto> searchByCategory(Pageable pageable, CategoryCondition condition, String userEmail);
     Page<ThumbnailItemDto> searchByCategory_tag(Pageable pageable, CategoryCondition condition, String userEmail);
 
+
 }

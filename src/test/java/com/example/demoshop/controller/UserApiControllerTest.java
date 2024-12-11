@@ -2,6 +2,7 @@ package com.example.demoshop.controller;
 
 import com.example.demoshop.domain.users.user.User;
 
+import com.example.demoshop.exception.users.UserNotFoundException;
 import com.example.demoshop.repository.users.UserRepository;
 import com.example.demoshop.request.users.NicknameUpdate;
 import com.example.demoshop.request.users.SignupRequest;
@@ -77,7 +78,7 @@ class UserApiControllerTest {
     @DisplayName("회원가입 - 성공 케이스")
     void signup_success() throws Exception {
         // given
-        SignupRequest signupRequest = getSignupRequest();
+        SignupRequest signupRequest = getSignupRequest("none");
 
         // when
         mockMvc.perform(MockMvcRequestBuilders.post("/user/signUp")
@@ -89,7 +90,7 @@ class UserApiControllerTest {
 
 
         // then
-        User user = userRepository.findAll().get(0);
+        User user = userRepository.findByEmail(signupRequest.getEmail()).orElseThrow(() -> new UserNotFoundException("존재하지 않는 회원입니다."));
         assertEquals("none1234@gmail.com", user.getEmail());
     }
 
@@ -99,7 +100,7 @@ class UserApiControllerTest {
     void signUp_fail_duplicateEmail() throws Exception {
 
         // given
-        userService.signup(getSignupRequest()); // 이미 가입된 회원 ; 이메일:none1234@gmail.com
+        userService.signup(getSignupRequest("none")); // 이미 가입된 회원 ; 이메일:none1234@gmail.com
 
         SignupRequest signupRequest = getDuplicateEmailSignupRequest();
 
@@ -120,7 +121,7 @@ class UserApiControllerTest {
     void signUp_fail_duplicateNick() throws Exception {
 
         // given
-        userService.signup(getSignupRequest()); // 이미 가입된 회원 ; 이메일:none1234@gmail.com
+        userService.signup(getSignupRequest("none")); // 이미 가입된 회원 ; 이메일:none1234@gmail.com
 
         SignupRequest signupRequest = getDuplicateNickSignupRequest();
 
@@ -141,10 +142,10 @@ class UserApiControllerTest {
     @DisplayName("닉네임 수정")
     void update_nick_success() throws Exception {
         // given
-        User user = getUser();
+        User user = getUser("kiki");
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
 
-        NicknameUpdate nickRequest = getNickRequest();
+        NicknameUpdate nickRequest = getNickRequest("noah");
 
         // when
         mockMvc.perform(MockMvcRequestBuilders.patch("/user/nickname")
@@ -158,8 +159,30 @@ class UserApiControllerTest {
 
 
         // then
-        User findUser = userRepository.findAll().get(0);
-        assertEquals("cocoa", findUser.getNickname());
+        User findUser = userRepository.findByEmail(user.getEmail()).orElseThrow(() -> new UserNotFoundException("존재하지 않는 회원입니다."));
+        assertEquals("noah", findUser.getNickname());
+    }
+
+    @Test
+    @DisplayName("닉네임 수정 실패 - 중복된 닉네임")
+    void update_nick_fail_duplicate() throws Exception {
+        // given
+        User user = getUser("kiki");
+        User other = getUser("noah");
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+
+        NicknameUpdate nickRequest = getNickRequest("noah");
+
+        // when
+        mockMvc.perform(MockMvcRequestBuilders.patch("/user/nickname")
+                                .accept(MediaType.APPLICATION_JSON_UTF8)  // 응답 인코딩을 UTF-8로 설정
+                                .contentType(MediaType.APPLICATION_JSON_UTF8)  // 요청 인코딩을 UTF-8로 설정
+                                .content(objectMapper.writeValueAsString(nickRequest))
+                .with(SecurityMockMvcRequestPostProcessors.user(userDetails))
+                )
+                .andExpect(status().isConflict())
+                .andExpect(content().string("중복된 닉네임입니다."))
+                .andDo(print());
     }
 
 
@@ -168,7 +191,7 @@ class UserApiControllerTest {
     void update_userProfile_success() throws Exception {
 
         // given
-        User user = getUser();
+        User user = getUser("kiki");
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
 
         MockMultipartFile profileFile = getProfileFile();
@@ -185,7 +208,7 @@ class UserApiControllerTest {
                 .andDo(print());
 
         // then
-        User findUser = userRepository.findAll().get(0);
+        User findUser = userRepository.findByEmail(user.getEmail()).orElseThrow(() -> new UserNotFoundException("존재하지 않는 회원입니다."));
         log.info("user img = {}", findUser.getProfileImg());
     }
 
@@ -198,26 +221,26 @@ class UserApiControllerTest {
 
 
 
-    private User getUser() {
-        SignupRequest req = getSignupRequest();
+    private User getUser(String name) {
+        SignupRequest req = getSignupRequest(name);
 
         Long userId = userService.signup(req);
 
         return userService.findById(userId);
     }
 
-    private NicknameUpdate getNickRequest() {
+    private NicknameUpdate getNickRequest(String name) {
         return NicknameUpdate.builder()
-                .nickname("cocoa")
+                .nickname(name)
                 .build();
     }
 
 
-    private static SignupRequest getSignupRequest() {
+    private static SignupRequest getSignupRequest(String name) {
         return SignupRequest.builder()
-                .email("none1234@gmail.com")
+                .email(name + "1234@gmail.com")
                 .password("1234")
-                .nickname("none")
+                .nickname(name)
                 .build();
     }
 

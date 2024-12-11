@@ -30,12 +30,12 @@ public class UserApiController {
     private final JwtLoginService loginService;
 
     @GetMapping("/user-email/{email}/exists")
-    public ResponseEntity<Boolean> checkEmailDuplicate(@PathVariable String email) {
-        return ResponseEntity.ok(userService.checkNicknameDuplicate(email));
+    public ResponseEntity<Boolean> checkEmailDuplicate(@PathVariable("email") String email) {
+        return ResponseEntity.ok(userService.checkEmailDuplicate(email));
     }
 
     @GetMapping("/user-nickname/{nickname}/exists")
-    public ResponseEntity<Boolean> checkNicknameDuplicate(@PathVariable String nickname) {
+    public ResponseEntity<Boolean> checkNicknameDuplicate(@PathVariable("nickname") String nickname) {
         return ResponseEntity.ok(userService.checkNicknameDuplicate(nickname));
     }
 
