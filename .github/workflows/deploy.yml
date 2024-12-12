@@ -1,0 +1,116 @@
+# Workflow의 이름을 지정합니다.
+name: BackEnd - CI/CD
+
+on:
+  push:
+  # main branch에 push(merge)될 경우 실행됩니다.
+    branches: ["main"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+	# build를 진행할 운영체제를 선택합니다.
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    # JDK를 23 버전으로 셋팅합니다.
+    - name: Set up JDK 23 
+      uses: actions/setup-java@v3
+      with:
+        java-version: '23'
+        distribution: 'temurin'
+
+    # Gradle을 캐싱해둡니다 -> 빌드 속도가 증가하는 효과가 있습니다.
+    - name: Gradle 캐싱
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+                ${{ runner.os }}-gradle-
+
+	# 프로젝트 저장소에 업로드하면 안되는 설정 파일들을 만들어줍니다.
+    - name: Make application.yml
+      run: |
+      	# src/main 으로 경로를 이동합니다.
+        cd ./src/main
+        # src/main 경로에 resources 폴더를 만들어줍니다.
+        mkdir resources
+        cd ./resources
+        # 필요한 yml 파일들을 만들어줍니다.
+        touch ./application.yml
+        touch ./application-aws.yml
+        touch ./application-oauth.yml
+        touch ./application-app.yml
+        # 등록해둔 Github Secrets의 내용을 이용해서 yml 파일의 내용을 써줍니다.
+        echo "$APPLICATION_OAUTH" > ./application-oauth.yml
+        echo "$APPLICATION_APP" > ./application-app.yml
+        echo "$APPLICATION" > ./application.yml
+        echo "$APPLICATION_AWS" > ./application-aws.yml
+      env:
+        APPLICATION_OAUTH: ${{ secrets.APPLICATION_OAUTH }}
+        APPLICATION_APP: ${{ secrets.APPLICATION_APP }}
+        APPLICATION: ${{ secrets.APPLICATION }}
+        APPLICATION_AWS: ${{ secrets.APPLICATION_AWS }}
+      shell: bash
+
+    - name: Gradle 권한 부여
+      run: chmod +x gradlew
+
+    - name: Gradle로 빌드 실행
+      run: ./gradlew bootjar
+
+
+	# 배포에 필요한 여러 설정 파일과 프로젝트 빌드파일을 zip 파일로 모아줍니다.
+    - name: zip file 생성
+      run: |
+        mkdir deploy
+        cp ./docker/docker-compose.blue.yml ./deploy/
+        cp ./docker/docker-compose.green.yml ./deploy/
+        cp ./appspec.yml ./deploy/
+        cp ./docker/Dockerfile ./deploy/
+        cp ./scripts/*.sh ./deploy/
+        cp ./build/libs/*.jar ./deploy/
+        zip -r -qq -j ./spring-build.zip ./deploy
+
+
+	# AWS에 연결해줍니다.
+    - name: AWS 연결
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ secrets.AWS_REGION }}
+
+	# S3에 프로젝트를 업로드 합니다.
+    - name: S3에 프로젝트 업로드
+      run: |
+        aws s3 cp \
+        --region ap-northeast-2 \
+        ./spring-build.zip s3://backend-rex-bucket
+
+    # CodeDelploy에 배포를 요청합니다.
+    - name: Code Deploy 배포 요청
+      run: aws deploy create-deployment --application-name backend-deploy-group
+        --deployment-config-name CodeDeployDefault.OneAtATime
+        --deployment-group-name backend-deploy-group
+        --s3-location bucket=backend-rex-bucket,bundleType=zip,key=spring-build.zip
+          
+    # 빌드 성공 & 실패 여부를 Slack 알람으로 발송합니다.
+    - name: Slack 알람 발송
+      uses: rtCamp/action-slack-notify@v2
+      env:
+        SLACK_CHANNEL: general
+        SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
+        SLACK_ICON: https://github.com/rtCamp.png?size=48
+        SLACK_MESSAGE: 배포 결과 => ${{ job.status }}
+        SLACK_TITLE: 배포 결과 알람
+        SLACK_USERNAME: Notification-Bot
+        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+      # 이 구문을 추가해야 빌드 성공 실패와 상관없이 동작합니다.
+      if: always()
