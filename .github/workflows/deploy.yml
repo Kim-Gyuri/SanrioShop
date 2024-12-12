@@ -12,7 +12,7 @@ permissions:
 jobs:
   build:
 	# build를 진행할 운영체제를 선택합니다.
-    runs-on: ubuntu-latest
+    runs-on: linux-latest
 
     steps:
     - uses: actions/checkout@v3
