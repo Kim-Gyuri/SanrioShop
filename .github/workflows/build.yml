@@ -3,10 +3,10 @@ name: BackEnd - CI/CD
 on:
   pull_request:
   	// main branch, dev branch에 pr 할경우 동작합니다.
-    branches: ["main", "dev"]
+    branches: ["master", "develop"]
   push:
     // dev branch에 push 하면 동작합니다.
-    branches: ["dev"]
+    branches: ["develop"]
 
 
 permissions:
@@ -49,11 +49,7 @@ jobs:
           echo "$APPLICATION_APP" > ./application-app.yml
           echo "$APPLICATION" > ./application.yml
           echo "$APPLICATION_AWS" > ./application-aws.yml
-        env:
-          APPLICATION_OAUTH: ${{ secrets.APPLICATION_OAUTH }}
-          APPLICATION_APP: ${{ secrets.APPLICATION_APP }}
-          APPLICATION: ${{ secrets.APPLICATION }}
-          APPLICATION_AWS: ${{ secrets.APPLICATION_AWS }}
+       
         shell: bash
 
       - name: Gradle 권한 부여
@@ -62,15 +58,3 @@ jobs:
       - name: Gradle로 빌드 실행
         run: ./gradlew bootjar
 
-
-      - name: Slack 알람 발송
-        uses: rtCamp/action-slack-notify@v2
-        env:
-          SLACK_CHANNEL: general
-          SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
-          SLACK_ICON: https://github.com/rtCamp.png?size=48
-          SLACK_MESSAGE: 빌드 결과 => ${{ job.status }}
-          SLACK_TITLE: 빌드 결과 알람
-          SLACK_USERNAME: Notification-Bot
-          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
-        if: always()
