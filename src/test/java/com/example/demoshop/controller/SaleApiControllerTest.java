@@ -43,6 +43,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -166,8 +167,8 @@ class SaleApiControllerTest {
                         .andExpect(status().isCreated())
                         .andDo(print());
             } catch (Exception e) {
-                e.printStackTrace();
                 failCount.incrementAndGet(); // 실패 시 카운터 증가
+                log.info("Order failed for user {}: {}", userDetailsA.getUsername(), e.getMessage(), e); // 로깅 추가
             } finally {
                 endLatch.countDown(); // 작업 종료 알림
             }
@@ -184,8 +185,8 @@ class SaleApiControllerTest {
                         .andExpect(status().isCreated())
                         .andDo(print());
             } catch (Exception e) {
-                e.printStackTrace();
                 failCount.incrementAndGet(); // 실패 시 카운터 증가
+                log.info("Order failed for user {}: {}", userDetailsB.getUsername(), e.getMessage(), e); // 로깅 추가
             } finally {
                 endLatch.countDown(); // 작업 종료 알림
             }
@@ -201,18 +202,19 @@ class SaleApiControllerTest {
         // Then
         // 한 개의 주문만 성공했는지 확인
         Item item = itemRepository.findById(itemId).orElseThrow(ItemNotFoundException::new);
-
         SaleItem sale = saleItemRepository.findByItem(item).orElseThrow(SaleItemNotFoundException::new);
 
         assertEquals(1, failCount.get()); // 실패한 주문은 하나여야 함
         assertNotNull(sale.getBuyer()); // 성공한 구매자 존재 확인
-
 
         // 삭제 전 잠시 대기
         Thread.sleep(2000);
 
         // ExecutorService 종료
         executorService.shutdown();
+        if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+            executorService.shutdownNow(); // 스레드 종료 대기
+        }
     }
 
 
