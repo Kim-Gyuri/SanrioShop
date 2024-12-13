@@ -28,7 +28,7 @@ jobs:
         host-port: 3306
         container-port: 3306
         mysql-database: 'sanrio_love'
-        mysql-root-password: ${{ h1049688 }}
+        mysql-root-password: ${{ secrets.DB_PASSWORD }}
 
         
     - name: Setup Gradle
