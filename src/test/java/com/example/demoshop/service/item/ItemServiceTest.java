@@ -53,6 +53,7 @@ class ItemServiceTest {
 
 
 
+/*
 
     @AfterEach
     void cleanAfter() {
@@ -61,6 +62,7 @@ class ItemServiceTest {
         userRepository.deleteAll();
     }
 
+ */
 
 
     @Test

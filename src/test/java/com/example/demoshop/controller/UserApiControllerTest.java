@@ -63,15 +63,20 @@ class UserApiControllerTest {
     @Autowired
     UserRepository userRepository;
 
+/*
     @BeforeEach
     void clean() {
         userRepository.deleteAll();
     }
 
-    @AfterEach
+
+        @AfterEach
     void cleanAfter() {
         userRepository.deleteAll();
     }
+
+ */
+
 
 
     @Test

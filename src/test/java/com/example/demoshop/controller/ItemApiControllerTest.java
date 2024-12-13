@@ -78,17 +78,20 @@ class ItemApiControllerTest {
     private UserRepository userRepository;
 
 
+  /*
     @BeforeEach
     void clean() {
         itemRepository.deleteAll();
         userRepository.deleteAll();
     }
 
-    @AfterEach
+        @AfterEach
     void cleanAfter() {
         itemRepository.deleteAll();
         userRepository.deleteAll();
     }
+   */
+
 
 
     @Test

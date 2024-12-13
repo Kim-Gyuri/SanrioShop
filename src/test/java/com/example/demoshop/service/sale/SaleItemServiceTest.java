@@ -54,6 +54,7 @@ class SaleItemServiceTest {
     SaleItemRepository saleItemRepository;
 
 
+/*
 
     @AfterEach
     void cleanAfter() {
@@ -61,6 +62,7 @@ class SaleItemServiceTest {
         itemRepository.deleteAll();
         userRepository.deleteAll();
     }
+ */
 
     @Transactional
     @Test

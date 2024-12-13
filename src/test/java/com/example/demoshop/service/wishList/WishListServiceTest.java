@@ -61,6 +61,7 @@ class WishListServiceTest {
     UserService userService;
 
 
+/*
     @AfterEach
     void cleanAfter() {
         wishItemRepository.deleteAll();
@@ -68,6 +69,7 @@ class WishListServiceTest {
         userRepository.deleteAll();
     }
 
+ */
 
     @Test
     @DisplayName("찜하기 표시 - 성공 케이스")

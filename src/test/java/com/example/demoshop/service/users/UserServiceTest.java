@@ -31,12 +31,14 @@ class UserServiceTest {
     UserService userService;
 
 
+/*
     @AfterEach
     void cleanAfter() {
         userRepository.deleteAll();
     }
 
 
+ */
     @Test
     @DisplayName("회원가입 - 성공 케이스")
     public void signup_success() {

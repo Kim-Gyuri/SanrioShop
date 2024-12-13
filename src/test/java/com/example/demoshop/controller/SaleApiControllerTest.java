@@ -81,6 +81,7 @@ class SaleApiControllerTest {
     private UserDetailsService userDetailsService;
 
 
+  /*
     @BeforeEach
     void clean() {
         saleItemRepository.deleteAll();
@@ -88,12 +89,14 @@ class SaleApiControllerTest {
         userRepository.deleteAll();
     }
 
-    @AfterEach
+        @AfterEach
     void cleanAfter() {
         saleItemRepository.deleteAll();
         itemRepository.deleteAll();
         userRepository.deleteAll();
     }
+
+   */
 
 
 

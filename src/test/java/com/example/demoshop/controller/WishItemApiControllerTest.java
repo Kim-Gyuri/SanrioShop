@@ -84,6 +84,8 @@ class WishItemApiControllerTest {
     private UserDetailsService userDetailsService;
 
 
+    /*
+
     @BeforeEach
     void clean() {
         itemRepository.deleteAll();
@@ -97,6 +99,8 @@ class WishItemApiControllerTest {
         wishItemRepository.deleteAll();
         userRepository.deleteAll();
     }
+     */
+
 
     @Test
     @DisplayName("찜 등록")
