@@ -21,6 +21,16 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
 
+  
+    - name: Set up MySQL
+      uses: mirromutth/mysql-action@v1.1
+      with:
+        host-port: 3306
+        container-port: 3306
+        mysql-database: 'sanrio_love'
+        mysql-root-password: ${{ h1049688 }}
+
+        
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
 
