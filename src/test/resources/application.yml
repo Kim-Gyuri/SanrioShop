@@ -1,0 +1,107 @@
+spring:
+  profiles:
+    active: local
+    group:
+      local: local, common, secret
+      blue: blue, common, secret
+      green: green, common, secret
+
+server:
+  env: blue
+
+---
+# local
+spring:
+  config:
+    activate:
+      on-profile: local
+
+server:
+  port: 8080
+  serverAddress: localhost
+
+serverName: local_server
+
+---
+# blue
+spring:
+  config:
+    activate:
+      on-profile: blue
+
+server:
+  port: 8080
+  serverAddress: 43.200.142.39
+
+serverName: blue_server
+
+---
+# green
+spring:
+  config:
+    activate:
+      on-profile: green
+
+server:
+  port: 8081
+  serverAddress: 43.200.142.39
+
+serverName: green_server
+
+---
+
+# jpa
+spring:
+  application:
+    name: demoshop
+
+  jpa:
+    properties:
+      hibernate:
+        default_batch_fetch_size: 100
+        format_sql: true
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/sanrio_love
+    username: root
+    password: h1049688
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+# cloud
+  cloud:
+    gcp:
+      storage:
+        credentials:
+          location: classpath:daily-commit-424306-fcc0c61d0682.json
+        project-id: daily-commit-424306
+        bucket: java-board-bucket
+
+  jwt:
+    secret: vmfhaltmskdlstkfkdgodyroqkfwkdbalroqkfwkdbalaaaaaaaaaaaaaaaabbbbb
+
+# swagger
+  swagger-ui:
+    groups-order: DESC
+    tags-sorter: alpha
+    operations-sorter: method
+    disable-swagger-default-url: true
+    display-request-duration: true
+    defaultModelsExpandDepth: 2
+    defaultModelExpandDepth: 2
+
+  api-docs:
+    path: /api-docs
+
+  show-actuator: true
+  writer-with-default-pretty-printer: true
+  model-and-view-allowed: true
+  paths-to-match:
+    - /api/**
+
+# log
+logging:
+  level:
+    org.springframework.security: DEBUG
