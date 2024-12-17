@@ -20,6 +20,15 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
+      - name: Setup MySQL
+        uses: samin/mysql-action@v1
+        with:
+          character set server: 'utf8' 
+          mysql database: ${{ secrets.DB_NAME }} 
+          mysql user: ${{ secrets.DB_USERNAME }}
+          mysql password: ${{ secrets.DB_PASSWORD }} 
+
+
       - name: Build with Gradle
         env:
           SPRING_DATASOURCE_URL: jdbc:mysql://${{ secrets.LIVE_SERVER_IP }}:3306/${{ secrets.DB_NAME }}
