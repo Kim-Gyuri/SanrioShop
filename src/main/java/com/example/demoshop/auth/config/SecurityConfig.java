@@ -65,6 +65,7 @@ public class SecurityConfig {
 
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
                         .requestMatchers(
+                                "/hc", "/env",
                                 "/view/shop/item", "/view/home", "/view/category",
                                 "/view/write/item", "/view/update/item", "/view/sale",
                                 "/view/user/order","/view/user/wish", "/view/update/user",
