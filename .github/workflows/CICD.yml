@@ -24,6 +24,7 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew clean build -x test
+          gradle build
 
       - name: Login to DockerHub
         uses: docker/login-action@v2
