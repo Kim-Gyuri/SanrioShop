@@ -21,6 +21,10 @@ jobs:
           distribution: 'temurin'
 
       - name: Build with Gradle
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://${{ secrets.LIVE_SERVER_IP }}:3306/${{ secrets.DB_NAME }}
+          SPRING_DATASOURCE_USERNAME: ${{ secrets.DB_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD: ${{ secrets.DB_PASSWORD }}
         run: |
           chmod +x ./gradlew
           ./gradlew clean build -x test
