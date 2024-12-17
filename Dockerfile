@@ -1,5 +1,5 @@
 # 1. Java 21 JRE 이미지 사용
-FROM amazoncorrectto:21-alpine-jdk
+FROM amazoncorretto:21-alpine
 
 # 2. 빌드 시 사용할 변수 설정 (JAR 파일 위치)
 ARG JAR_FILE=target/*.jar
