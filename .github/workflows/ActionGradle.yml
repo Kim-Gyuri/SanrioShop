@@ -63,8 +63,10 @@ jobs:
         key: ${{ secrets.EC2_PRIVATE_KEY }} # pem 키
         # 도커 작업
         script: |
-          sudo docker pull ${{ secrets.DOCKER_USERNAME }}/sanrio_server:latest
-          sudo docker stop $(sudo docker ps -a -q)
-          sudo docker run -d --log-driver=syslog -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/sanrio_server:latest
-          sudo docker rm $(sudo docker ps --filter 'status=exited' -a -q)
-          sudo docker image prune -a -f
+            sudo docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password "${{ secrets.DOCKERHUB_TOKEN }}"
+            sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sanrio_server:latest
+            sudo docker stop $(sudo docker ps -q) || true
+            sudo docker rm $(sudo docker ps -a -q) || true
+            sudo docker run -d --log-driver=syslog --name sanrio_server -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/sanrio_server:latest
+            sudo docker image prune -a -f
+
