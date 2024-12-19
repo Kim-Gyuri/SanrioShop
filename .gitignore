@@ -6,8 +6,6 @@ build/
 !**/src/test/**/build/
 src/main/resources/daily-commit-424306-fcc0c61d0682.json
 
-src/main/resources/application.yml
-src/test/resources/application.yml
 
 ### STS ###
 .apt_generated

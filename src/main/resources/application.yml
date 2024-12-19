@@ -14,24 +14,24 @@ spring:
     show-sql: true
 
   datasource:
-    url: jdbc:mysql://sanrio-database.cv0zl8agiiz8.ap-northeast-2.rds.amazonaws.com:3306/mydb?serverTimezone=UTC&characterEncoding=UTF-8
-    username: thumper
-    password: h1049688
+    url: ${DB_URL}  # DB URL을 환경 변수로 처리
+    username: ${DB_USERNAME}  # Secrets에서 가져오기
+    password: ${DB_PASSWORD}  # Secrets에서 가져오기
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-# cloud
+  # cloud
   cloud:
     gcp:
       storage:
         credentials:
-          location: classpath:daily-commit-424306-fcc0c61d0682.json
+          location: ${GCP_CREDENTIALS_PATH}  # GCP 인증 파일 경로를 환경 변수로 처리
         project-id: daily-commit-424306
         bucket: java-board-bucket
 
   jwt:
-    secret: vmfhaltmskdlstkfkdgodyroqkfwkdbalroqkfwkdbalaaaaaaaaaaaaaaaabbbbb
+    secret: ${JWT_SECRET}  # JWT secret을 환경 변수로 처리
 
-# swagger
+  # swagger
   swagger-ui:
     groups-order: DESC
     tags-sorter: alpha
