@@ -51,8 +51,8 @@ jobs:
     - name: Docker Image Build & Push
       run: |
         echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/project-name .
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/project-name
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/sanrio_server .
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/sanrio_server
 
 
   # 위 build-docker-image 작업에서 Push한 이미지를 EC2에서 Pull & Run시키는 과정 
@@ -68,12 +68,12 @@ jobs:
     - name: Docker login & pull the image
       run: |
         echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/project-name
+        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sanrio_server
       
     # 2. 기존 컨테이너 중지 (실행 중인 컨테이너가 있다면 종료)
     - name: Stop running container
       run: |
-        CONTAINER_ID=$(docker ps -q --filter "ancestor=${{ secrets.DOCKERHUB_USERNAME }}/project-name")
+        CONTAINER_ID=$(docker ps -q --filter "ancestor=${{ secrets.DOCKERHUB_USERNAME }}/sanrio_server")
         if [ ! -z "$CONTAINER_ID" ]; then
           docker stop "$CONTAINER_ID"
         fi
@@ -81,7 +81,7 @@ jobs:
     # 3. 최신 이미지로 새 컨테이너 실행
     - name: Run new container from pulled image
       run: |
-        docker run --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/project-name
+        docker run --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/sanrio_server
 
     # 4. 기존 이미지 정리
     - name: Delete old docker image
