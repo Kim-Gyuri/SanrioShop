@@ -1,0 +1,45 @@
+name: Java CI with Gradle
+
+# 동작 조건 설정: develop 브랜치에 push or pull request가 발생할 경우 동작
+on:
+  push:
+    branches: [ "develop" ]
+  pull_request:
+    branches: [ "develop" ]
+
+permissions:
+  contents: read
+
+jobs:
+  # Spring Boot 애플리케이션을 빌드하여 Docker Hub에 Push하는 과정
+  build-docker-image:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    
+    # 0. 외부 설정 파일 세팅 (application-db.yml)
+    - name: 외부 설정 파일 세팅
+      run: echo "${{ secrets.APPLICATION_DB_YML }}" > ./src/main/resources/application-db.yml
+    
+    # 1. Java 21 세팅
+    - name: Set up JDK 21
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'corretto'
+
+    # 2. gradlew 권한 부여
+    - name: Run chmod to make gradlew executable
+      run: chmod +x gradlew
+    
+    # 3. Spring Boot 애플리케이션 빌드
+    - name: Build with Gradle
+      run: ./gradlew build
+      
+    # 4. Docker 이미지 빌드 & Push
+    - name: Docker Image Build & Push
+      run: |
+        echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/project-name .
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/project-name
