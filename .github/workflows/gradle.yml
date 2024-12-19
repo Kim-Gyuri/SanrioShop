@@ -17,19 +17,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
-    # 0. 외부 설정 파일 세팅 (application-db.yml)
-    - name: 외부 설정 파일 세팅
-      run: |
-        echo "${{ secrets.APPLICATION_DB_YML }}" > ./src/main/resources/application.yml
-        echo "${{ secrets.APPLICATION_TEST_DB_YML }}" > ./src/test/resources/application.yml
-
-
-    # 설정된 yml 파일 내용 출력
-    - name: Display application.yml contents
-      run: |
-        cat ./src/main/resources/application.yml
-        cat ./src/test/resources/application.yml
         
     # 1. Java 21 세팅
     - name: Set up JDK 21
@@ -37,6 +24,19 @@ jobs:
       with:
         java-version: '21'
         distribution: 'corretto'
+
+    # 1-5 세팅
+    - name: Set up GCP credentials
+      run: |
+        echo "${{ secrets.GCP_CREDENTIALS }}" > ./src/main/resources/gcp-credentials.json  # GCP 인증 파일을 설정
+
+    - name: Set up environment variables
+      run: |
+        echo "DB_URL=${{ secrets.DB_URL }}" >> $GITHUB_ENV
+        echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
+        echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
+        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
+
 
     # 2. gradlew 권한 부여
     - name: Run chmod to make gradlew executable
