@@ -20,7 +20,9 @@ jobs:
     
     # 0. 외부 설정 파일 세팅 (application-db.yml)
     - name: 외부 설정 파일 세팅
-      run: echo "${{ secrets.APPLICATION_DB_YML }}" > ./src/main/resources/application-db.yml
+      run: |
+        echo "${{ secrets.APPLICATION_DB_YML }}" > ./src/main/resources/application-db.yml
+        echo "${{ secrets.APPLICATION_TEST_DB_YML }}" > ./src/test/resources/application-test.yml
     
     # 1. Java 21 세팅
     - name: Set up JDK 21
