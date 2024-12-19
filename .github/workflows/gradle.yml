@@ -25,11 +25,12 @@ jobs:
         java-version: '21'
         distribution: 'corretto'
 
-    # 1-5 세팅
+    # GCP json 파일 설정
     - name: Set up GCP credentials
       run: |
-        echo "${{ secrets.GCP_CREDENTIALS }}" > ./src/main/resources/gcp-credentials.json  # GCP 인증 파일을 설정
+        echo "${{ secrets.GCP_CREDENTIALS }}" > ./src/main/resources/daily-commit-424306-fcc0c61d0682.json
 
+    # yml 변수 설정
     - name: Set up environment variables
       run: |
         echo "DB_URL=${{ secrets.DB_URL }}" >> $GITHUB_ENV
