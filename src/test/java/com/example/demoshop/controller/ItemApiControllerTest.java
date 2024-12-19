@@ -8,6 +8,7 @@ import com.example.demoshop.domain.item.common.TagOption;
 import com.example.demoshop.domain.users.user.User;
 import com.example.demoshop.exception.item.ItemNotFoundException;
 import com.example.demoshop.repository.item.ItemRepository;
+import com.example.demoshop.repository.sale.SaleItemRepository;
 import com.example.demoshop.repository.users.UserRepository;
 import com.example.demoshop.request.item.CreateItemRequest;
 import com.example.demoshop.request.item.UpdateItemRequest;
@@ -77,20 +78,25 @@ class ItemApiControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private SaleItemRepository saleItemRepository;
 
-  /*
+
     @BeforeEach
     void clean() {
+        saleItemRepository.deleteAll();
         itemRepository.deleteAll();
         userRepository.deleteAll();
     }
 
-        @AfterEach
+
+    @AfterEach
     void cleanAfter() {
+        saleItemRepository.deleteAll();
         itemRepository.deleteAll();
         userRepository.deleteAll();
     }
-   */
+
 
 
 

@@ -3,6 +3,8 @@ package com.example.demoshop.controller;
 import com.example.demoshop.domain.users.user.User;
 
 import com.example.demoshop.exception.users.UserNotFoundException;
+import com.example.demoshop.repository.item.ItemRepository;
+import com.example.demoshop.repository.sale.SaleItemRepository;
 import com.example.demoshop.repository.users.UserRepository;
 import com.example.demoshop.request.users.NicknameUpdate;
 import com.example.demoshop.request.users.SignupRequest;
@@ -63,19 +65,27 @@ class UserApiControllerTest {
     @Autowired
     UserRepository userRepository;
 
-/*
+    @Autowired
+    private SaleItemRepository saleItemRepository;
+
+    @Autowired
+    private ItemRepository itemRepository;
+
+
     @BeforeEach
     void clean() {
+        saleItemRepository.deleteAll();
+        itemRepository.deleteAll();
         userRepository.deleteAll();
     }
 
-
-        @AfterEach
+    @AfterEach
     void cleanAfter() {
+        saleItemRepository.deleteAll();
+        itemRepository.deleteAll();
         userRepository.deleteAll();
     }
 
- */
 
 
 

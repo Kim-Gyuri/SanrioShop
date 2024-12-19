@@ -3,16 +3,17 @@ package com.example.demoshop.controller.web;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
+
 import java.util.Map;
 import java.util.TreeMap;
 
-@RestController
+//@RestController
 public class HealthCheckController {
 
+    /*
     @Value("${server.env}")
     private String env;
 
@@ -40,4 +41,6 @@ public class HealthCheckController {
     public ResponseEntity<?> getEnv() {
         return ResponseEntity.ok(env);
     }
+
+     */
 }

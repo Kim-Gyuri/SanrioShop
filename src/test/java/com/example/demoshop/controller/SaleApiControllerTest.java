@@ -81,7 +81,7 @@ class SaleApiControllerTest {
     private UserDetailsService userDetailsService;
 
 
-  /*
+
     @BeforeEach
     void clean() {
         saleItemRepository.deleteAll();
@@ -89,14 +89,14 @@ class SaleApiControllerTest {
         userRepository.deleteAll();
     }
 
-        @AfterEach
+    @AfterEach
     void cleanAfter() {
         saleItemRepository.deleteAll();
         itemRepository.deleteAll();
         userRepository.deleteAll();
     }
 
-   */
+
 
 
 
@@ -200,7 +200,7 @@ class SaleApiControllerTest {
         executorService.submit(task2);
 
         startLatch.countDown(); // 두 스레드 동시에 시작
-        endLatch.await(); // 두 작업 종료까지 대기
+        endLatch.await(10, TimeUnit.SECONDS); // 타임아웃 추가
 
         // Then
         // 한 개의 주문만 성공했는지 확인

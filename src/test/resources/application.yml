@@ -1,54 +1,4 @@
-spring:
-  profiles:
-    active: local
-    group:
-      local: local, common, secret
-      blue: blue, common, secret
-      green: green, common, secret
 
-server:
-  env: blue
-
----
-# local
-spring:
-  config:
-    activate:
-      on-profile: local
-
-server:
-  port: 8080
-  serverAddress: localhost
-
-serverName: local_server
-
----
-# blue
-spring:
-  config:
-    activate:
-      on-profile: blue
-
-server:
-  port: 8080
-  serverAddress: 43.200.142.39
-
-serverName: blue_server
-
----
-# green
-spring:
-  config:
-    activate:
-      on-profile: green
-
-server:
-  port: 8081
-  serverAddress: 43.200.142.39
-
-serverName: green_server
-
----
 
 # jpa
 spring:
@@ -65,8 +15,8 @@ spring:
     show-sql: true
 
   datasource:
-    url: jdbc:mysql://43.200.142.39:3306/sanrio_love
-    username: root
+    url: jdbc:mysql://sanrio-database.cv0zl8agiiz8.ap-northeast-2.rds.amazonaws.com:3306/mydb?serverTimezone=UTC&characterEncoding=UTF-8
+    username: thumper
     password: h1049688
     driver-class-name: com.mysql.cj.jdbc.Driver
 

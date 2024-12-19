@@ -10,6 +10,7 @@ import com.example.demoshop.domain.wishList.WishItem;
 import com.example.demoshop.exception.item.ItemNotFoundException;
 import com.example.demoshop.exception.wishList.WishItemNotFoundException;
 import com.example.demoshop.repository.item.ItemRepository;
+import com.example.demoshop.repository.sale.SaleItemRepository;
 import com.example.demoshop.repository.users.UserRepository;
 import com.example.demoshop.repository.wishList.WishItemRepository;
 import com.example.demoshop.request.item.CreateItemRequest;
@@ -83,11 +84,13 @@ class WishItemApiControllerTest {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    @Autowired
+    private SaleItemRepository saleItemRepository;
 
-    /*
 
     @BeforeEach
     void clean() {
+        saleItemRepository.deleteAll();
         itemRepository.deleteAll();
         wishItemRepository.deleteAll();
         userRepository.deleteAll();
@@ -95,11 +98,12 @@ class WishItemApiControllerTest {
 
     @AfterEach
     void cleanAfter() {
+        saleItemRepository.deleteAll();
         itemRepository.deleteAll();
         wishItemRepository.deleteAll();
         userRepository.deleteAll();
     }
-     */
+
 
 
     @Test
