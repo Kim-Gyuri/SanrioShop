@@ -17,19 +17,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
-    # 0. 외부 설정 파일 세팅 (application-db.yml)
-    - name: 외부 설정 파일 세팅
-      run: |
-        echo "${{ secrets.APPLICATION_DB_YML }}" > ./src/main/resources/application.yml
-        echo "${{ secrets.APPLICATION_TEST_DB_YML }}" > ./src/test/resources/application.yml
-
-
-    # 설정된 yml 파일 내용 출력
-    - name: Display application.yml contents
-      run: |
-        cat ./src/main/resources/application.yml
-        cat ./src/test/resources/application.yml
         
     # 1. Java 21 세팅
     - name: Set up JDK 21
@@ -38,20 +25,34 @@ jobs:
         java-version: '21'
         distribution: 'corretto'
 
+    # GCP json 파일 설정
+    - name: Set up GCP credentials
+      run: |
+        echo "${{ secrets.GCP_CREDENTIALS }}" > ./src/main/resources/daily-commit-424306-fcc0c61d0682.json
+
+    # yml 변수 설정
+    - name: Set up environment variables
+      run: |
+        echo "DB_URL=${{ secrets.DB_URL }}" >> $GITHUB_ENV
+        echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> $GITHUB_ENV
+        echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
+        echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> $GITHUB_ENV
+        echo "GCP_CREDENTIALS_PATH=${{ secrets.GCP_CREDENTIALS_PATH }}" >> $GITHUB_ENV
+
     # 2. gradlew 권한 부여
     - name: Run chmod to make gradlew executable
       run: chmod +x gradlew
     
     # 3. Spring Boot 애플리케이션 빌드
     - name: Build with Gradle
-      run: ./gradlew clean build
+      run: ./gradlew clean build -x test
       
     # 4. Docker 이미지 빌드 & Push
     - name: Docker Image Build & Push
       run: |
         echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/project-name .
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/project-name
+        docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/sanrio_server .
+        docker push ${{ secrets.DOCKERHUB_USERNAME }}/sanrio_server
 
 
   # 위 build-docker-image 작업에서 Push한 이미지를 EC2에서 Pull & Run시키는 과정 
@@ -66,13 +67,14 @@ jobs:
     # 1. 최신 이미지 Pull
     - name: Docker login & pull the image
       run: |
+        sudo chmod 666 /var/run/docker.sock
         echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/project-name
+        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/sanrio_server
       
     # 2. 기존 컨테이너 중지 (실행 중인 컨테이너가 있다면 종료)
     - name: Stop running container
       run: |
-        CONTAINER_ID=$(docker ps -q --filter "ancestor=${{ secrets.DOCKERHUB_USERNAME }}/project-name")
+        CONTAINER_ID=$(docker ps -q --filter "ancestor=${{ secrets.DOCKERHUB_USERNAME }}/sanrio_server")
         if [ ! -z "$CONTAINER_ID" ]; then
           docker stop "$CONTAINER_ID"
         fi
@@ -80,8 +82,4 @@ jobs:
     # 3. 최신 이미지로 새 컨테이너 실행
     - name: Run new container from pulled image
       run: |
-        docker run --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/project-name
-
-    # 4. 기존 이미지 정리
-    - name: Delete old docker image
-      run: docker system prune -f
+        docker run --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/sanrio_server
