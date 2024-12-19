@@ -83,7 +83,3 @@ jobs:
     - name: Run new container from pulled image
       run: |
         docker run --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/sanrio_server
-
-    # 4. 기존 이미지 정리
-    - name: Delete old docker image
-      run: docker system prune -f
