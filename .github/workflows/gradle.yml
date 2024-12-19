@@ -23,7 +23,14 @@ jobs:
       run: |
         echo "${{ secrets.APPLICATION_DB_YML }}" > ./src/main/resources/application.yml
         echo "${{ secrets.APPLICATION_TEST_DB_YML }}" > ./src/test/resources/application.yml
-    
+
+
+    # 설정된 yml 파일 내용 출력
+    - name: Display application.yml contents
+      run: |
+        cat ./src/main/resources/application.yml
+        cat ./src/test/resources/application.yml
+        
     # 1. Java 21 세팅
     - name: Set up JDK 21
       uses: actions/setup-java@v4
