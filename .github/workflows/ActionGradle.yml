@@ -22,10 +22,13 @@ jobs:
         distribution: 'temurin'
 
     # GCP json 파일 설정
-    - name: Set up GCP credentials
-      run: |
-        echo "${{ secrets.GCP_CREDENTIALS }}" > ./src/main/resources/daily-commit-424306-fcc0c61d0682.json
-
+    - name: create-json
+      id: create-json
+      uses: jsdaniell/create-json@v1.2.2
+      with:
+        name: "daily-commit-424306-fcc0c61d0682.json"
+        json: ${{ secrets.GCP_CREDENTIALS }}
+        dir: 'src/main/resources/'
 
     - name: Copy Secret
       env:
