@@ -1,5 +1,8 @@
 # jpa
 spring:
+  profiles:
+    include: secret  # 민감정보 secret 파일
+
   application:
     name: demoshop
 
@@ -13,23 +16,6 @@ spring:
       ddl-auto: update
     show-sql: true
 
-  datasource:
-    url: ${DB_URL}  # DB URL을 환경 변수로 처리
-    username: ${DB_USERNAME}  # Secrets에서 가져오기
-    password: ${DB_PASSWORD}  # Secrets에서 가져오기
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
-  # cloud
-  cloud:
-    gcp:
-      storage:
-        credentials:
-          location: ${GCP_CREDENTIALS_PATH}  # GCP 인증 파일 경로를 환경 변수로 처리
-        project-id: daily-commit-424306
-        bucket: java-board-bucket
-
-  jwt:
-    secret: ${JWT_SECRET}  # JWT secret을 환경 변수로 처리
 
   # swagger
   swagger-ui:

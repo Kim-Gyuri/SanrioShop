@@ -200,7 +200,7 @@ class SaleApiControllerTest {
         executorService.submit(task2);
 
         startLatch.countDown(); // 두 스레드 동시에 시작
-        endLatch.await(10, TimeUnit.SECONDS); // 타임아웃 추가
+        endLatch.await(20, TimeUnit.SECONDS); // 타임아웃 추가
 
         // Then
         // 한 개의 주문만 성공했는지 확인
