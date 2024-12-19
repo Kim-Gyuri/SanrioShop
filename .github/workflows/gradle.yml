@@ -3,9 +3,9 @@ name: Java CI with Gradle
 # 동작 조건 설정: develop 브랜치에 push or pull request가 발생할 경우 동작
 on:
   push:
-    branches: [ "develop" ]
+    branches: ["develop"]
   pull_request:
-    branches: [ "develop" ]
+    branches: ["develop"]
 
 permissions:
   contents: read
@@ -43,3 +43,36 @@ jobs:
         echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
         docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/project-name .
         docker push ${{ secrets.DOCKERHUB_USERNAME }}/project-name
+
+
+  # 위 build-docker-image 작업에서 Push한 이미지를 EC2에서 Pull & Run시키는 과정 
+  run-docker-image-on-ec2:
+    # build-docker-image 작업이 완료되어야 실행됨
+    needs: build-docker-image
+
+    # self-hosted-runner에서 동작
+    runs-on: self-hosted
+
+    steps:
+    # 1. 최신 이미지 Pull
+    - name: Docker login & pull the image
+      run: |
+        echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+        docker pull ${{ secrets.DOCKERHUB_USERNAME }}/project-name
+      
+    # 2. 기존 컨테이너 중지 (실행 중인 컨테이너가 있다면 종료)
+    - name: Stop running container
+      run: |
+        CONTAINER_ID=$(docker ps -q --filter "ancestor=${{ secrets.DOCKERHUB_USERNAME }}/project-name")
+        if [ ! -z "$CONTAINER_ID" ]; then
+          docker stop "$CONTAINER_ID"
+        fi
+
+    # 3. 최신 이미지로 새 컨테이너 실행
+    - name: Run new container from pulled image
+      run: |
+        docker run --rm -d -p 8080:8080 ${{ secrets.DOCKERHUB_USERNAME }}/project-name
+
+    # 4. 기존 이미지 정리
+    - name: Delete old docker image
+      run: docker system prune -f
