@@ -44,7 +44,7 @@ jobs:
       run: chmod +x gradlew
       
     - name: Build with Gradle Wrapper
-      run: ./gradlew clean build -x test
+      run: ./gradlew clean build
 
     # Docker build & Push 
     - name: Docker Image Build & Push
