@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", function () {
 
-   const form = document.querySelector("form");
-   form.addEventListener("submit", function (event) {
+    const form = document.querySelector("form");
+    form.addEventListener("submit", function (event) {
         event.preventDefault();
 
         const nickname = document.getElementById("nickname").value;
@@ -9,17 +9,17 @@ document.addEventListener("DOMContentLoaded", function () {
         const password = document.getElementById("password").value;
 
         const signupRequest = {
-              nickname: nickname,
-              email: email,
-              password: password
+            nickname: nickname,
+            email: email,
+            password: password
         };
 
         fetch("/user/signUp", {
-              method: "POST",
-              headers: {
-                  "Content-Type": "application/json"
-              },
-              body: JSON.stringify(signupRequest)
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(signupRequest)
         })
         .then(response => {
             if (response.status === 201) {
@@ -43,9 +43,5 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("오류 발생:", error);
             alert("서버와의 통신 중 문제가 발생했습니다.");
         });
-        .catch(error => {
-              console.error("Error:", error);
-              alert("다시 입력해주세요.");
-        });
-   });
+    });
 });
