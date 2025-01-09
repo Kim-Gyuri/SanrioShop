@@ -25,6 +25,7 @@
 + 상품 구매
 + 찜 등록/삭제/조회
 + 주문 메시지 조회/삭제
+> [WIKI> API Docs 보러가기](https://github.com/Kim-Gyuri/SanrioShop/wiki/API-Docs)  
   
 ## 핵심 기능
 + JWT를 활용한 로그인 인증 및 고객 정보 관리
