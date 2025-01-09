@@ -19,9 +19,6 @@
 특히, 가격보다는 제품명과 태그를 강조하여 구매에 대한 강요받는 느낌 없이 자연스럽게 상품을 탐색할 수 있도록 UI 디자인을 설계했습니다. 
 이를 통해 상품에 대한 흥미를 높이고, 편안한 탐색 경험을 제공하고자 했습니다.
 
-#### WIKI > Project Overview 
-> [프로젝트 Overview 바로가기](https://github.com/Kim-Gyuri/SanrioShop/wiki/%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-Overview) <br>
-> [레퍼런스앱 분석노트 : 레퍼런스 콜리를 분석한 목적 / 분석을 통한 프로젝트 목적](https://github.com/Kim-Gyuri/SanrioShop/wiki/%EB%A0%88%ED%8D%BC%EB%9F%B0%EC%8A%A4%EC%95%B1-%EB%B6%84%EC%84%9D%EB%85%B8%ED%8A%B8)
 # ERD
 ![산리오](https://github.com/user-attachments/assets/6d7ae7b4-c051-452a-9945-2c7dc16b7a2e)
 # Technology Stacks
@@ -778,6 +775,8 @@ Hibernate:
 
 # Wiki Docs
 프로젝트 진행 중 작성한 문서 모음.
++ [프로젝트 Overview 바로가기](https://github.com/Kim-Gyuri/SanrioShop/wiki/%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-Overview) <br>
++ [레퍼런스앱 분석노트 : 레퍼런스 콜리를 분석한 목적 / 분석을 통한 프로젝트 목적](https://github.com/Kim-Gyuri/SanrioShop/wiki/%EB%A0%88%ED%8D%BC%EB%9F%B0%EC%8A%A4%EC%95%B1-%EB%B6%84%EC%84%9D%EB%85%B8%ED%8A%B8)
 + [API Docs 바로가기](https://github.com/Kim-Gyuri/SanrioShop/wiki/API-Docs)
 + [Features : 최종 구현 기능 바로가기](https://github.com/Kim-Gyuri/SanrioShop/wiki/Features-:-%EC%B5%9C%EC%A2%85-%EA%B5%AC%ED%98%84-%EA%B8%B0%EB%8A%A5)
 + [클래스 설계와 DB 설계 바로가기](https://github.com/Kim-Gyuri/SanrioShop/wiki/%ED%81%B4%EB%9E%98%EC%8A%A4-%EC%84%A4%EA%B3%84%EC%99%80-DB-%ED%85%8C%EC%9D%B4%EB%B8%94-%EC%84%A4%EA%B3%84)
