@@ -70,6 +70,12 @@ GitHub Actions를 사용해 CI/CD 파이프라인을 구성했으며, Docker를 
 + Google Cloud Platform
   + 웹 서비스에서 회원 프로필과 상품 이미지를 등록 및 관리하고 있습니다.
  
+# Branches
++ develop : 개발 및 배포를 위한 브랜치로 사용 중
++ master : .
+
+원래는 develop 브랜치를 개발과 테스트를 위한 용도로, master 브랜치를 안정적인 배포 용도로 구분하려 했지만, <br>
+현재는 develop 브랜치만 사용 중입니다.
 
 # 트러블 슈팅 & 리팩토링
 ##  📌 CascadeType.ALL과 orphanRemoval로 인한 외래 키 제약 위반 해결
