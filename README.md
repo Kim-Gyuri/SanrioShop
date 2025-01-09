@@ -23,7 +23,7 @@
 ![산리오](https://github.com/user-attachments/assets/6d7ae7b4-c051-452a-9945-2c7dc16b7a2e)
 # Technology Stacks
 ` Backend`
-+ Java 23 (OpenJDK)
++ Java 21 (OpenJDK)
 + Spring Boot 3.3.1
 + Spring Data JPA
 + Hibernate
