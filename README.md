@@ -856,7 +856,7 @@ Hibernate:
 ### 블로그에 업로드한 학습 포스팅
 + [거래요청에 대한 동시성 테스트](https://thumper.tistory.com/72)
 + [다중 토큰: Refresh 토큰과 생명 주기](https://thumper.tistory.com/71)
-+ [검색 기능 구현 중 발생한 데이터 누락 문제와 해결](https://thumper.tistory.com/70)
++ [1:N 조인에서 발생한 중복 데이터 및 누락 문제 해결](https://thumper.tistory.com/70)
 + [검색 로직 리팩토링](https://thumper.tistory.com/73)
 
     
