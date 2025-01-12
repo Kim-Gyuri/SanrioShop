@@ -146,6 +146,10 @@ API를 통해 조회한 결과는 단 6개의 항목만 반환되었다. <br><br
 이 로직은 QueryDSL을 사용하여 페이징 쿼리로 구현했었다.<br>
 LEFT JOIN을 사용해 각 테이블을 연결한 이 과정에서 문제가 발생했는지 확인하기 위해 코드를 점검하기로 했다. <br><br>
 
+#### Item 
+![image](https://github.com/user-attachments/assets/8fd20ac3-f68d-4e91-ab35-cc47e4f685d3)
+
+
 #### search_fetch 로직
 ```
     @Override
@@ -252,13 +256,19 @@ WHERE iil1_0.is_main_img = 'Y';
 ![ttttfk](https://github.com/user-attachments/assets/747ab1ac-0eb1-426d-ac36-cf110ab43f83) <br><br>
 
 
+1:N 관계로 설정했기 때문에, 하나의 item에 여러 개의 itemImg 또는 userDefinedTag, recommendedTag가 매핑될 수 있다. <br>
+그래서 item이 여러 번 중복되어 반환되는 이유일 수 있다고 생각했다. <br><br>
+
 ### ✅ 해결: 로직 개선
 #### ✔️ 기존 로직의 문제점
 + 조인하는 테이블 간의 1:N 관계로 인해 중복된 데이터가 발생할 가능성이 큰 것 같다.
     + item과 itemImg는 1:N 관계다. <br> 상품 1개에 여러 이미지가 있는 경우 item 데이터가 중복될 수 있다.
 + item과 userDefinedTag, recommendedTag도 각각 1:N 관계다.
-    + 상품 1개에 여러 태그가 있는 경우에도 중복된다. 
+    + 상품 1개에 여러 태그가 있는 경우에도 중복된다.
++ 각각의 item에 연결된 여러 이미지 또는 태그들이 별도의 행으로 반환되면서, 실제 item의 데이터가 여러 번 반복될 수 있다.
+    + 중복된 행이 반환되면서, 페이징 쿼리가 페이지 사이즈를 초과하게 되어 일부 데이터가 누락된 것이다.
 
+           
 조인 결과에서 각 테이블의 관계에 따라 중복된 행이 생성된 것 같다.
 
 #### ✔️ 어떻게 개선할까?
