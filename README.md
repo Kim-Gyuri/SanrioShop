@@ -111,8 +111,9 @@ GitHub Actions를 사용해 CI/CD 파이프라인을 구성했으며, Docker를 
 현재는 develop 브랜치만 사용 중입니다.
 
 # 트러블 슈팅 & 리팩토링
-##  📌 CascadeType.ALL과 orphanRemoval로 인한 외래 키 제약 위반 해결
+## 📌 CascadeType.ALL과 orphanRemoval로 인한 외래 키 제약 위반 해결
 찜 상품을 찜목록에서 삭제할 때 다음과 같은 오류가 발생했다. <br>
+
 <img src="https://github.com/user-attachments/assets/e5d123ac-d32e-4220-a90e-31c99add351c" width="90%" />
 <img src="https://github.com/user-attachments/assets/efcd54d2-c333-42a1-b3cc-8439d71fc146" width="90%" />
 
@@ -123,16 +124,16 @@ SQLIntegrityConstraintViolationException과 DataIntegrityViolationException 두 
 <img src="https://github.com/user-attachments/assets/1f0ecdb6-83bc-4cb4-83d1-4241f8ab7b0c" width="90%" /> <br>
 item 엔티티의 코드를 다시 확인해본 결과, **CascadeType.ALL**과 **orphanRemoval = true**가 함께 설정되어 있었다. <br><br>
 
-#### ✔️ CascadeType.ALL과 orphanRemoval = true
+### ✔️ CascadeType.ALL과 orphanRemoval = true
 CascadeType.ALL과 orphanRemoval = true가 함께 설정된 경우, <br> item 엔티티가 삭제될 때 연관된 user_defined_tag 엔티티도 함께 삭제되지만,
 외래 키 제약 조건을 위반하는 방식으로 삭제될 수 있다. <br>
 이 문제는 주로 외래 키 무결성 오류에 의해 발생하며, item_id가 여전히 user_defined_tag에 남아있는 상태에서 item 엔티티를 삭제하려 할 때 발생한다.
-#### ✔️ 원인 분석
+### ✔️ 원인 분석
 item 엔티티가 삭제될 때, <br>
 연관된 자식 엔티티인 user_defined_tag에서 item_id를 참조하는 외래 키 값이 남아 있는 상태로 삭제가 시도되면, 외래 키 제약 조건을 위반하게 된다. <br>
 이로 인해 SQLIntegrityConstraintViolationException 및 DataIntegrityViolationException 예외가 발생한 것이다.
 
-#### ✔️ 해결 방법
+### ✔️ 해결 방법
 <img src="https://github.com/user-attachments/assets/283b1b48-5335-4421-970b-285ff8ca3bf9" width="70%" /> 
 
 CascadeType.ALL은 모든 작업(persist, merge, remove 등)을 자식 엔티티에 전파하지만, 이로 인해 삭제 작업 시 외래 키 제약을 위반하는 경우가 발생할 수 있다. <br>
@@ -141,7 +142,7 @@ CascadeType.ALL은 모든 작업(persist, merge, remove 등)을 자식 엔티티
 따라서, CascadeType.REMOVE 으로 설정하면 item을 삭제할 때 연관된 user_defined_tag만 삭제되고, 다른 연관 관계가 있는 엔티티에는 영향을 미치지 않게 된다. <br>이렇게 설정함으로써 외래 키 제약 위반을 방지할 수 있다.
 
 
-## 📌 1:N 조인에서 발생한 중복 데이터 및 누락 문제 해결
+## 📌  1:N 조인에서 발생한 중복 데이터 및 누락 문제 해결
 ### ✅ 문제
 상품 페이징 조회 기능을 구현하던 중, 예상치 못한 문제가 발생했었다. <br>
 API를 통해 데이터를 조회했을 때, DB에서 직접 조회한 결과와 비교해보니 일부 데이터가 누락된 것이다. <br><br>
@@ -149,20 +150,19 @@ API를 통해 데이터를 조회했을 때, DB에서 직접 조회한 결과와
 DB에서 직접 쿼리를 실행했을 때는 12개의 데이터 항목이 모두 정상적으로 조회되었지만, <br>
 API를 통해 조회한 결과는 단 6개의 항목만 반환되었다. <br><br><br>
 
-#### POSTMAN 실행
+### POSTMAN 실행
 다음과 같이, postman에 페이징 api 요청을 실행했었다.
-![image](https://github.com/user-attachments/assets/9914fc2a-5b8e-48ef-86d4-5c85b52b2353) <br><br><br>
+![image](https://github.com/user-attachments/assets/9914fc2a-5b8e-48ef-86d4-5c85b52b2353)
 
 ### ✅ 문제 분석
 이 문제를 해결하기 위해, 가장 먼저 살펴본 것은 search_fetch 로직이다.<br>
 이 로직은 QueryDSL을 사용하여 페이징 쿼리로 구현했었다.<br>
 LEFT JOIN을 사용해 각 테이블을 연결한 이 과정에서 문제가 발생했는지 확인하기 위해 코드를 점검하기로 했다. <br><br>
 
-#### Item 
+### Item 
 ![image](https://github.com/user-attachments/assets/8fd20ac3-f68d-4e91-ab35-cc47e4f685d3)
 
-
-#### search_fetch 로직
+### search_fetch 로직
 ```
     @Override
     public Page<ItemDtoV3> search_fetch_v5(Pageable pageable, SearchCondition condition) {
@@ -231,7 +231,7 @@ LEFT JOIN을 사용해 각 테이블을 연결한 이 과정에서 문제가 발
     }
 ```
 
-#### DB에 직접 쿼리 실행
+### DB에 직접 쿼리 실행
 문제를 더 명확히 파악하기 위해 <br>
 API 요청에서 사용된 쿼리를 로그에서 확인한 뒤, 이를 직접 DB에서 실행해보기로 했다.
 ```
@@ -267,7 +267,6 @@ WHERE iil1_0.is_main_img = 'Y';
 ```
 ![ttttfk](https://github.com/user-attachments/assets/747ab1ac-0eb1-426d-ac36-cf110ab43f83) <br><br>
 
-
 1:N 관계로 설정했기 때문에, 하나의 item에 여러 개의 itemImg 또는 userDefinedTag, recommendedTag가 매핑될 수 있다. <br>
 그래서 item이 여러 번 중복되어 반환되는 이유일 수 있다고 생각했다. <br><br>
 
@@ -281,8 +280,8 @@ LEFT JOIN으로 쿼리를 작성했지만, Postman으로 API를 테스트한 결
 
 <br><br>
 
-### ✅ 해결: 로직 개선
-#### ✔️ 기존 로직의 문제점
+### ✅ 해결
+### ✔️ 기존 로직의 문제점
 + 조인하는 테이블 간의 1:N 관계로 인해 중복된 데이터가 발생할 가능성이 큰 것 같다.
     + item과 itemImg는 1:N 관계다. <br> 상품 1개에 여러 이미지가 있는 경우 item 데이터가 중복될 수 있다.
 + item과 userDefinedTag, recommendedTag도 각각 1:N 관계다.
@@ -290,13 +289,12 @@ LEFT JOIN으로 쿼리를 작성했지만, Postman으로 API를 테스트한 결
 + 각각의 item에 연결된 여러 이미지 또는 태그들이 별도의 행으로 반환되면서, 실제 item의 데이터가 여러 번 반복될 수 있다.
     + 중복된 행이 반환되면서, 페이징 쿼리가 페이지 사이즈를 초과하게 되어 일부 데이터가 누락된 것이다.
 
-           
 조인 결과에서 각 테이블의 관계에 따라 중복된 행이 생성된 것 같다.
 
-#### ✔️ 어떻게 개선할까?
+### ✔️ 어떻게 개선할까?
 데이터 조회와 태그 조회를 분리하고 필요한 데이터를 별도로 그룹핑하여 처리하는 방식으로 해결하고자 했다. <br><br><br>
 
-#### ✔️ 개선된 로직
+### ✔️ 개선된 로직
 ```java
     @Override
     public Page<ItemDtoV3> search_fetch_v6(Pageable pageable, SearchCondition condition) {
@@ -393,17 +391,16 @@ LEFT JOIN으로 쿼리를 작성했지만, Postman으로 API를 테스트한 결
 
 #### 필터링 조건 개선
 search_fetch_v6에서는 검색 조건에 따라 동적으로 whereClause를 구성했다. <br>
-이를 통해 조회하고자 하는 데이터에 대해 더욱 명확하고 효율적인 필터링을 적용할 수 있었다. 예를 들어, 카테고리, 캐릭터, 이름 등의 조건에 따라 SQL 조건을 유연하게 생성했다. <br><br><br>
+이를 통해 조회하고자 하는 데이터에 대해 더욱 명확하고 효율적인 필터링을 적용할 수 있었다. 예를 들어, 카테고리, 캐릭터, 이름 등의 조건에 따라 SQL 조건을 유연하게 생성했다. <br><br>
 
 #### 데이터 조회 분리
 기존 로직에서는 여러 테이블을 한 번에 조인하여 데이터를 가져왔었다. <br>
 새로운 로직에서는 아이템 정보와 태그 정보를 분리하여 각각 조회했다. <br>
-이를 통해 아이템 리스트를 먼저 조회한 후, 별도로 태그 정보를 가져와 각 아이템에 매핑하는 방식으로 개선했다. <br><br><br>
+이를 통해 아이템 리스트를 먼저 조회한 후, 별도로 태그 정보를 가져와 각 아이템에 매핑하는 방식으로 개선했다. <br><br>
 
 #### 태그 정보 매핑 및 그룹화
 태그 정보는 각각의 아이템 ID를 기준으로 그룹화시켰다. <br>
-이 과정에서 userDefinedTag와 recommendedTag의 데이터를 각각 매핑하여, 아이템별로 정확한 태그 정보를 유지할 수 있었다.
-
+이 과정에서 userDefinedTag와 recommendedTag의 데이터를 각각 매핑하여, 아이템별로 정확한 태그 정보를 유지할 수 있었다. <br><br>
 
 ### ✔️ DB에 직접 쿼리 실행
 API 요청에서 사용된 쿼리를 로그에서 확인한 뒤, 이를 직접 DB에서 실행해보았다.
@@ -449,11 +446,13 @@ LEFT JOIN
 ```
 ![image](https://github.com/user-attachments/assets/d417c52d-2ab9-45fc-83bd-5bac40b56418)
 
+
 ### ✔️ 해당 해결방안의 문제점
-하지만 여러 개의 연관된 데이터를 별도의 쿼리로 조회하고 있다. <br> 
+하지만 상품에 대한 태그 정보를 찾기 위해 별도의 쿼리가 실행되고 있다. <br> 
 이로 인해 연관 관계가 늘어날수록 별도의 쿼리가 증가하는 문제가 발생한다. <br> 
-아래의 리팩토링 내용은 '문제2: 상품 정보 조회 쿼리 코드에서 중복된 부분이 많다'에서 이어지는 트러블슈팅이다. <br>
-> [문제2: 상품 정보 조회 쿼리 코드에서 중복된 부분이 많다](https://github.com/Kim-Gyuri/SanrioShop/blob/develop/README.md#-%EB%AC%B8%EC%A0%9C2-%EC%83%81%ED%92%88-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-%EC%BF%BC%EB%A6%AC-%EC%BD%94%EB%93%9C%EC%97%90%EC%84%9C-%EC%A4%91%EB%B3%B5%EB%90%9C-%EB%B6%80%EB%B6%84%EC%9D%B4-%EB%A7%8E%EB%8B%A4)
+아래의 리팩토링 '문제2: 상품 정보 조회 쿼리 코드에서 중복된 부분이 많다'에서 해당 부분을 개선했다, <br>
+'1+ 태그 조회(2번, Udt와 rt)'에서 1번 실행으로 개선했다. <br>
+> [문제2: 상품 정보 조회 쿼리 코드에서 중복된 부분이 많다](https://github.com/Kim-Gyuri/SanrioShop/wiki/%ED%8A%B8%EB%9F%AC%EB%B8%94-%EC%8A%88%ED%8C%85-&-%EB%A6%AC%ED%8C%A9%ED%86%A0%EB%A7%81#-%EB%AC%B8%EC%A0%9C2-%EC%83%81%ED%92%88-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-%EC%BF%BC%EB%A6%AC-%EC%BD%94%EB%93%9C%EC%97%90%EC%84%9C-%EC%A4%91%EB%B3%B5%EB%90%9C-%EB%B6%80%EB%B6%84%EC%9D%B4-%EB%A7%8E%EB%8B%A4)
 
 ## 📌 검색 로직 리팩토링
 검색 기능을 통해 상품 정보를 조회할 때, 썸네일에 표시되는 정보를 가져오는 조회로직이 필요하다. <br>
@@ -464,7 +463,7 @@ LEFT JOIN
 + 태그
 + 현재 로그인한 유저가 해당 상품을 찜 등록했을 여부
 
-#### ✔️ 리팩토링 목적
+### ✔️ 리팩토링 목적
 검색 조건은 여러 가지가 있지만, `검색 시 반환되는 데이터 타입이 동일하기 때문에 중복 코드를 제거`하여 리팩토링할 필요가 있었다. <br>
 검색 조건은 다음과 같다.
 + 태그
@@ -473,11 +472,11 @@ LEFT JOIN
 + 테마 검색
 
 
-###  ✅ 리팩토링 전 코드
-#### Item 엔티티의 연관관계
+##  ✅ 리팩토링 전 코드
+### Item 엔티티의 연관관계
 <img src="https://github.com/user-attachments/assets/9e81ab8b-b30b-4872-bf75-3c9e572556f8" width="90%" />  <br>
 
-#### 조회로직
+### 조회로직
 ```java
 
     @Override
@@ -589,17 +588,20 @@ LEFT JOIN
         return new PageImpl<>(finalItems, pageable, total);
     }
 ```
-#### 실행된 쿼리
+### 실행된 쿼리
 + items 리스트를 조회하는 쿼리
 + userDefinedTag, recommendedTag, liker를 각각 별도의 쿼리로 실행
 
-<br><br>
 
-### ✅ 문제1 : Item과 User 간 직접 연관 조회하는 경우, 코드가 복잡해진다.
+## ✅ 문제1 : Item과 User 간 직접 연관 조회하는 경우, 코드가 복잡해진다.
 ```java
 @OneToMany(mappedBy = "item", orphanRemoval = true)
 private List<User> likers = new ArrayList<>(); //찜 등록한 유저들
 ```
+
+썸네일에 포함된 상품 태그 정보를 각각 별도의 쿼리로 조회했던 것처럼, <br>
+찜 등록한 유저 정보도 별도의 쿼리로 조회하려고 했다. <br><br>
+
 찜 등록한 유저 정보를 가져오기 위해서 Item과 User를 1:N 관계로 설계했으며, <br>
 Item에서 찜 등록한 회원 정보를 직접 관리하고 조회하려고 했다.  <br>
 Item과 User의 연관 관계에서 직접적인 조회 쿼리를 작성하면 직관적이고 코드가 간결해지지 않을까 생각했다. <br><br><br>
@@ -626,7 +628,8 @@ Item과 연관된 User 정보를 조회하기 위해 User 엔티티 데이터를
 이 과정에서 `user.item.id`를 키(pk)로 설정하고, 해당 Item을 찜한 회원들의 이메일 정보를 리스트(List)로 저장했다.   <br>
 최종적으로 조회된 데이터를 Map<Long, List<String>> 형태로 변환하여 활용했다.<br><br><br>
 
-#### ✔️ 문제 분석
+
+### ✔️ 문제 분석
 + Item과 User 간의 1:N 관계를 잘 활용하지 못했다.
    + User와 Item 간의 1:N 관계를 잘 활용하지 못하고, 각 테이블에 대한 데이터를 개별적으로 조회했다.
    + User와 Item 간의 관계를 별도의 로직으로 결합하려다 보니 코드가 복잡해졌다.
@@ -635,24 +638,27 @@ Item과 연관된 User 정보를 조회하기 위해 User 엔티티 데이터를
    + Item과 User 간의 관계를 1:N으로 설계했지만, 이 관계를 직접 쿼리로 처리하는 과정에서 오히려 쿼리 성능이 저하되고 코드가 복잡해졌다.
    + 데이터를 Tuple로 조회한 후 이를 Map<Long, List>로 변환하는 과정이 복잡하고 비효율적이다.
 
+
  <br><br>
 
 
-#### ✔️ 문제 원인
-#### Item과 User 1:N 연관관계로 했던 의도
+### ✔️ 문제 원인
+### Item과 User 1:N 연관관계로 했던 의도
 + 썸네일에 표시되는 상품정보에 현재 로그인한 유저가 해당 상품을 찜 등록했을 여부 정보가 필요했다.
 + Item과 User 간의 관계를 @OneToMany로 설정하여 특정 상품을 찜한 모든 유저를 조회하려 했다.
 + 유저가 찜한 상품을 조회하려는 의도로 user.item.id와 user.email을 함께 가져오려 했다.
 + user.item.id는 유저가 찜한 Item의 ID를, user.email은 그 유저의 이메일을 가져오는 형태로, 두 정보를 묶어서 반환하려 했다.
 
-#### user.item.id 접근방식이 잘못되었다.
+### user.item.id 접근방식이 잘못되었다.
 + User 객체는 Item 객체를 직접 참조하지 않다.
 + 때문에, user.item.id와 같은 방식은 잘못된 접근이다.
 + User가 여러 Item을 찜할 수 있기 때문에, Item을 기준으로 User를 조회하는 것이 더 적절한 접근인 것 같다.
 
-<br><br>
 
-#### ✔️ 개선: WishItem을 활용해 관계를 풀기
+ <br><br>
+
+
+### ✔️ 개선: WishItem을 활용해 관계를 풀기
 User와 Item 간의 관계를 통해 찜 등록한 유저와 해당 상품 정보를 조회하는 방식은 사용하지 않기로 했다. <br>
 대신 WishItem 엔티티를 활용하여 관계를 풀기로 하였고, 이를 통해 조회 로직을 더 명확하고 직관적으로 만들 수 있었다. <br>
 WishItem은 User와 Item 간의 중간 테이블 역할을 하며, 이 엔티티를 기준으로 User와 Item 간의 관계를 조인하여 필요한 정보를 한 번에 조회할 수 있게 되었다. <br><br>
@@ -666,19 +672,19 @@ WishItem은 User와 Item 간의 중간 테이블 역할을 하며, 이 엔티티
 
 <br><br>
 
-#### ✔️ 개선된 코드
-#### (1) Item, WishItem 엔티티
+### ✔️ 개선된 코드
+### (1) Item, WishItem 엔티티
 <img src="https://github.com/user-attachments/assets/d337ceeb-b02b-43f4-83e7-501c4af52f00" width="60%" /> <br> 
 <img src="https://github.com/user-attachments/assets/8b9db372-5e3d-4c58-afb5-159632a52a18" width="40%" /><br> 
 Item에 있던 User 관계를 지우고, 찜 등록한 회원 정보를 WishItem을 중간 엔티티로 사용하여 조회하기로 했다. <br>
 WishItem을 중간 테이블로 활용하여 조인의 범위를 좁히려고 했다. <br><br> <br> 
 
-#### (2) 조회로직
+### (2) 조회로직
 WishItem은 Item과 User의 관계만 다루기 때문에, 쿼리가 더 명확하고 직관적이다. <br>
 WishItem을 기준으로 Item과 User 간의 관계를 조인하여 필요한 정보를 한번에 조회하고, Map<Long, List<String>> 형태로 변환할 수 있었다. <br>
 <img src="https://github.com/user-attachments/assets/0fa7a7bd-d73a-434f-b745-a8d0536e27b9" width="70%" />  <br> <br>
 
-#### 실행된 쿼리
+### 실행된 쿼리
 ```
     select
         wi1_0.item_id,
@@ -698,14 +704,10 @@ WishItem을 기준으로 Item과 User 간의 관계를 조인하여 필요한 �
 
  <br><br>
 
-### ✅ 문제2: 상품 정보 조회 쿼리 코드에서 중복된 부분이 많다.
+## ✅ 문제2: 상품 정보 조회 쿼리 코드에서 중복된 부분이 많다.
+위의 조회 로직이 실행되는 쿼리는 아래와 같다. <br>
 상품과 연관된 데이터를 모두 개별적으로 조회한 후, Stream을 사용하여 조건에 맞는 데이터를 필터링하고 매핑하는 방식을 사용했었다. <br>
-하지만 검색 로직에서 해당 부분이 중복되므로 개선이 필요하다고 느꼈다. <br> <br>
-
-태그 검색, 상품명 검색, 테마 검색 등 조건에 맞춘 여러 검색 로직을 구현했지만, 로직 간 중복된 코드가 많아 리팩토링이 필요했다.  <br>
-또한, 실행된 쿼리에서 상품과 연관된 엔티티 정보를 가져오기 위해 연관된 엔티티 수만큼 별도 쿼리가 실행되는 비효율적인 문제가 있었다. <br>
-
-#### 검색로직 실행된 쿼리
+하지만 검색 로직에서 해당 부분이 중복되므로 개선이 필요하다고 느꼈다. <br>
 ```
     select
         i1_0.item_id,
@@ -764,7 +766,7 @@ Hibernate:
             and ii1_0.is_main_img=?
 ```
 
-#### 실행된 쿼리
+### 실행된 쿼리
 여러 번 각각 별도의 쿼리로 조회하고 있다. 
 + 첫 번째 쿼리: item과 item_img 조회
 + 두 번째 쿼리: user_defined_tag 조회
@@ -773,18 +775,18 @@ Hibernate:
 
 <br><br><br>
 
-#### ✔️ 쿼리 개선방안
-+ 비효율적인 쿼리 처리를 해결하기 위해 QueryDSL의 `selectFrom(item)`을 사용하여, 필요한 데이터(상품, 태그 등)를 한 번의 쿼리로 조회하는 방식으로 변경했다. <br>
-+ 'distinct`를 활용해 중복 데이터를 제거하고 성능을 최적화했다. <br>  
-+ 연관된 태그 정보는 @OneToMany을 활용하여 `item` 객체에서 가져왔다. <br>  
+### ✔️ 쿼리 개선방안
++ 상품에 대한 태그 정보를 컬렉션 기반 조인으로 조회한다.
 + 또한, 페이징 처리 시 반환 타입을 엔티티가 아닌 DTO로 변환하였다. <br>  
 + 검색 로직에서 공통적으로 사용되는 찜 등록 유저 조회와 Item 리스트를 DTO로 변환하는 과정을 별도의 메서드로 분리해 코드 재사용했다.  
 
-#### ✔️ 개선된 코드
+<br><br>
+
+### ✔️ 개선된 코드
 ![image](https://github.com/user-attachments/assets/3c5de2eb-5c2e-43d9-9256-24b9e0912146) <br> 
 ![image](https://github.com/user-attachments/assets/c1a8f2d6-5ad1-444b-9ae5-2a3f4ba6039a)  <br><br>
 
-#### 실행된 쿼리
+### 실행된 쿼리
 ```
 Hibernate: 
     select
@@ -851,6 +853,53 @@ Hibernate:
             on u1_0.user_id=u1_1.user_id) 
         on wl1_0.wish_list_id=u1_0.wish_list_id
 ```
+
+<br><br><br>
+
+### 전체적인 쿼리 개선 포인트
+중복된 item 반환으로 일부 데이터가 누락되는 문제와 별도의 쿼리 발생 문제에 대한 해결 포인트는 아래와 같다.
+#### V1: 명시적 조인 방식, 하지만 중복된 item 행 반환으로 일부 데이터 누락되는 문제가 있었다.
+```java
+                .select(item.id, item.nameKor, item.price, item.description,
+                        item.createAt, item.likeCount, item.sanrioCharacters,
+                        item.mainCategory, item.subCategory, itemImg.imgUrl,
+                        userDefinedTag.name, recommendedTag.tagOption)
+                .from(item)
+                .leftJoin(itemImg).on(itemImg.item.eq(item).and(itemImg.isMainImg.eq(IsMainImg.Y)))
+                .leftJoin(userDefinedTag).on(userDefinedTag.item.eq(item))
+                .leftJoin(recommendedTag).on(recommendedTag.item.eq(item))
+                .where(whereClause)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+```
+
+<br>
+
+#### V2: 태그 테이블을 패치 조인으로 각각 개별 조회했지만, 개별 쿼리가 2번 추가 실행되는 문제가 발생했다. 
+```java
+queryFactory
+                .select(recommendedTag.item.id, recommendedTag.tagOption)
+                .from(recommendedTag)
+                .fetch();
+
+```
+
+<br>
+
+#### V3: 태그 정보를 컬렉션 조인 방식으로 조회하여, 별도의 쿼리 발생 없이 쿼리 1번으로 해결. <br>
+```java
+        List<Item> items = queryFactory.selectFrom(item)
+                .distinct()
+                .leftJoin(item.recommendedTagList, recommendedTag)
+                .leftJoin(item.userDefinedTagList, userDefinedTag)
+                .where(whereClause)
+                .offset(pageable.getOffset())   // Set the starting point of the results
+                .limit(pageable.getPageSize())  // Set the number of results to return
+                .fetch();
+```
+
+
 
 
 # Wiki Docs
