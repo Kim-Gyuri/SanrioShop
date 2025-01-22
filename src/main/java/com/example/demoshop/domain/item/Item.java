@@ -4,7 +4,6 @@ import com.example.demoshop.domain.item.common.IsMainImg;
 import com.example.demoshop.domain.item.common.MainCategory;
 import com.example.demoshop.domain.item.common.SanrioCharacters;
 import com.example.demoshop.domain.item.common.SubCategory;
-import com.example.demoshop.domain.transaction.SaleItem;
 import com.example.demoshop.domain.users.user.User;
 import com.example.demoshop.request.item.UpdateItemRequest;
 import com.example.demoshop.response.item.ItemDetailDto;
@@ -61,7 +60,6 @@ public class Item {
 
     @OneToMany(mappedBy = "item", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.REMOVE)
     private List<ItemImg> itemImgList = new ArrayList<>(); // 상품 이미지 (다중)
-
 
     @OneToMany(mappedBy = "item", fetch = FetchType.LAZY, orphanRemoval = true, cascade = CascadeType.REMOVE)
     private Set<UserDefinedTag> userDefinedTagList = new HashSet<>(); // 검색 태그 (다중)

@@ -12,6 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @ToString
+@Setter
 public class CategoryCondition {
 
     private SanrioCharacters sanrioCharacters;

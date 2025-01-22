@@ -14,6 +14,7 @@ import com.example.demoshop.exception.item.ItemNotFoundException;
 import com.example.demoshop.repository.item.ItemRepository;
 import com.example.demoshop.repository.sale.SaleItemRepository;
 import com.example.demoshop.repository.users.UserRepository;
+import com.example.demoshop.response.sale.SaleItemResponse;
 import com.example.demoshop.service.item.ItemService;
 import lombok.extern.slf4j.Slf4j;
 
@@ -80,6 +81,11 @@ class SaleItemServiceTest {
 
         assertEquals(18000, saleItem.getPrice());
         assertEquals("cocoa6", saleItem.getBuyer().getNickname());
+
+        SaleItemResponse saleItemDetail = itemRepository.findSaleItemDetail(itemId);
+        log.info("구매자 이메일 :" + saleItemDetail.getBuyerEmail());
+        log.info("판매 상품명 :" + saleItemDetail.getNameKor());
+        log.info("결제금액 :" + saleItemDetail.getPrice());
     }
 
 

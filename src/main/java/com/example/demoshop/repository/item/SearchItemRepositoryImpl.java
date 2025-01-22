@@ -288,8 +288,11 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
         }
 
         if (condition.getItemName() != null && !condition.getItemName().isEmpty()) {
-            String searchTerm = "%" + condition.getItemName().toLowerCase() + "%";
-            whereClause.and(item.nameKor.toLowerCase().like(searchTerm));
+            String[] searchKeywords = condition.getItemName().split("\\s+"); // 검색어를 공백 기준으로 분리
+            for (String keyword : searchKeywords) {
+                String searchTerm = "%" + keyword.toLowerCase() + "%";
+                whereClause.and(item.nameKor.toLowerCase().like(searchTerm)); // 각 키워드가 포함된 조건 추가
+            }
         }
         return whereClause;
     }
