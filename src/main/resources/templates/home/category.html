@@ -519,7 +519,7 @@
         // 상품 상세 페이지 이동
         $(document).on('click', '.card-img-top', function(event) {
             event.preventDefault();
-            const itemId = $(this).data('id');
+            const itemId = ${item.id};
             if (itemId) {
                 localStorage.setItem('selectedItemId', itemId);
                 window.location.href = '/view/shop/item';
