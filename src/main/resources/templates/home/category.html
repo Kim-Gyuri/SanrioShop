@@ -384,7 +384,7 @@
                             const card = `
                                 <div class="col-md-3 mb-4">
                                     <div class="card h-100">
-                                        <img class="card-img-top" src="${item.thumbnail}" alt="Item Image" />
+                                        <img class="card-img-top" src="${item.thumbnail}" alt="Item Image"  data-id="${item.id}"/>
                                         <div class="card-body p-4">
                                             <div class="text-center">
                                                 <h5 class="fw-bolder">${item.nameKor}</h5>
@@ -519,13 +519,15 @@
         // 상품 상세 페이지 이동
         $(document).on('click', '.card-img-top', function(event) {
             event.preventDefault();
-            const itemId = ${item.id};
+            const itemId = $(this).data('id');
             if (itemId) {
                 localStorage.setItem('selectedItemId', itemId);
                 window.location.href = '/view/shop/item';
             }
         });
 
+        // Initial fetch on page load
+        fetchItems();
     });
 </script>
 </body>
