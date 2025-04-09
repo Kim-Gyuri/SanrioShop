@@ -7,6 +7,7 @@ import com.example.demoshop.request.token.CreateRefreshToken;
 import com.example.demoshop.request.users.LoginRequest;
 import com.example.demoshop.exception.users.UserNotFoundException;
 import com.example.demoshop.repository.token.RefreshTokenRepository;
+import com.example.demoshop.response.users.UserTokenDto;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +38,7 @@ public class JwtLoginService {
     private final JwtProperties jwtProperties;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    public void login(LoginRequest loginRequest, HttpServletResponse response) {
+    public UserTokenDto login(LoginRequest loginRequest, HttpServletResponse response) {
         // 인증된 회원정보인지 검증
         authenticate(loginRequest.getEmail(), loginRequest.getPassword());
         UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
@@ -60,6 +61,9 @@ public class JwtLoginService {
         response.setHeader(JWT_AUTH, access);
         response.addCookie(cookie);
         response.setStatus(HttpStatus.OK.value());
+
+
+        return UserTokenDto.fromEntity(userDetails, access);
     }
 
     private void addRefreshEntity(CreateRefreshToken refreshRequest) {

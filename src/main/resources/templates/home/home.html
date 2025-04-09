@@ -276,6 +276,12 @@
         function fetchItems(page = 1, searchType = '', keyword = '', sanrio = '') {
             let accessToken = localStorage.getItem('accessToken');
             accessToken = accessToken ? accessToken.trim() : '';
+            console.log("token =", accessToken);
+
+            if (accessToken === null || accessToken.trim() === '') {
+                alert("로그인이 필요합니다.");
+                window.location.href = "/view/login";
+            }
 
             let data = {
                 page: page - 1, // 페이지 번호를 0 기반으로 변환
@@ -370,6 +376,11 @@
                     }
                 },
                 error: function(xhr, status, error) {
+
+                    if (res.status === 401) {
+                        window.location.href = '/view/login';
+                    }
+
                     console.error('AJAX Error:', status, error);
 
                     // 오류 이미지용 래퍼 요소를 추가

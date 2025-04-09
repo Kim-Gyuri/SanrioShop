@@ -3,6 +3,7 @@ package com.example.demoshop.auth.jwt.util;
 import io.jsonwebtoken.Jwts;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -71,6 +72,12 @@ public class JwtProperties  {
 				.parseSignedClaims(token)
 				.getPayload()
 				.get(TYPE, String.class);
+	}
+
+	//validate token
+	public Boolean validateToken(String token, UserDetails userDetails) {
+		final String username = getUsername(token);
+		return (username.equals(userDetails.getUsername()) && !isExpired(token));
 	}
 
 

@@ -186,11 +186,12 @@ public class ItemService {
     @Transactional(readOnly = true)
     public Page<ThumbnailItemDto> search_fetch_mainPage(Pageable pageable, SearchCondition condition, String userEmail) {
 
+        // 태그 검색
         if (hasTagSearchCondition(condition.getTag())) {
             return itemRepository.searchMainPageItems_tag(pageable, condition, userEmail);
         }
 
-        // 조건이 비어있는 경우
+        // 상품명 검색
         return itemRepository.searchMainPageItems_name(pageable, condition, userEmail);
     }
 

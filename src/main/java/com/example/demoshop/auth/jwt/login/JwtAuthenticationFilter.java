@@ -2,6 +2,7 @@ package com.example.demoshop.auth.jwt.login;
 
 import com.example.demoshop.auth.jwt.util.JwtProperties;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,14 +10,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
-import java.io.PrintWriter;
+
 
 
 import static com.example.demoshop.utils.constants.JwtConstants.JWT_AUTH;
@@ -42,53 +43,51 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 		// Take out the token from the request header.
 		String accessToken = request.getHeader(JWT_AUTH);
-		log.info("access token ={}", accessToken);
+		String username = null;
+
+
 		// If there is no token, it passes to the next filter.
-		if (accessToken == null) {
-			log.info("Access token is missing");
-			filterChain.doFilter(request, response);
-
-			return;
+		if (accessToken != null) {
+			log.info("access token ={}", accessToken);
+			try {
+				username = jwtProperties.getUsername(accessToken);
+				log.info("username = {}", username);
+			} catch (IllegalArgumentException ex) {
+				log.info("fail get user id");
+				ex.printStackTrace();
+			} catch (ExpiredJwtException ex) {
+				log.info("Token expired");
+				ex.printStackTrace();
+			} catch (MalformedJwtException ex) {
+				log.info("Invalid JWT !!");
+				ex.printStackTrace();
+			} catch (Exception e) {
+				log.info("Unable to get JWT Token !!");
+				e.getStackTrace();
+			}
 		}
 
-		// Check if token has expired, if expired do not pass to next filter
-		try {
-			jwtProperties.isExpired(accessToken);
-		} catch (ExpiredJwtException ex) {
-			log.info("Access token expired", ex);
+		if ((username != null) && (SecurityContextHolder.getContext().getAuthentication() == null)) {
 
-			// response body
-			PrintWriter writer = response.getWriter();
-			writer.print("access token expired");
+			UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+			if (this.jwtProperties.validateToken(accessToken, userDetails)) {
 
-			// response status code
-			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			return;
+				// All things going well
+				// Authentication stuff
+				UsernamePasswordAuthenticationToken authenticationToken =
+						new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+				authenticationToken
+						.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+				log.info("authenticated user " + username + ", setting security context");
+				SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+			} else {
+				log.info("Invalid JWT Token !!");
+			}
+		} else {
+			log.info("Username is null or context is not null !!");
 		}
-
-		// Check if the token is access (발급시 명시한다. in payload)
-		String tokenType = jwtProperties.getType(accessToken);
-
-		if (!tokenType.equals(JWT_AUTH)) {
-			log.info("Invalid token type: {}", tokenType);
-
-			// response body
-			PrintWriter writer = response.getWriter();
-			writer.print("invalid access token");
-
-			// response status code
-			response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-			return;
-		}
-
-		// get username,role
-		String username = jwtProperties.getUsername(accessToken);
-
-		UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-
-		Authentication authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-		SecurityContextHolder.getContext().setAuthentication(authToken);
-
 		filterChain.doFilter(request, response);
 	}
 

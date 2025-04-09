@@ -62,9 +62,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     const accessToken = response.headers.get('Authorization');
                     if (accessToken) {
                         localStorage.setItem('accessToken', accessToken);
+
+                         alert("로그인되었습니다!");
+                         window.location.href = "/view/home";
                     }
-                    alert("로그인되었습니다!");
-                    window.location.href = "/view/home";
+
                 } else {
                     alert("올바른 아이디와 비밀번호를 입력해주세요.");
                 }

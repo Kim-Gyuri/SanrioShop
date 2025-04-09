@@ -5,12 +5,14 @@ import com.example.demoshop.request.users.LoginRequest;
 import com.example.demoshop.request.users.NicknameUpdate;
 import com.example.demoshop.request.users.SignupRequest;
 import com.example.demoshop.response.users.ProfileResponse;
+import com.example.demoshop.response.users.UserTokenDto;
 import com.example.demoshop.service.users.JwtLoginService;
 import com.example.demoshop.service.users.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -48,10 +50,12 @@ public class UserApiController {
 
     // 로그인
     @PostMapping("/login")
-    public void login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
+    public ResponseEntity<UserTokenDto> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
 
-        loginService.login(loginRequest, response);
+        UserTokenDto loginDto = loginService.login(loginRequest, response);
 
+        log.info("token={}", loginDto.getToken());
+        return ResponseEntity.status(HttpStatus.OK).header(loginDto.getToken()).body(loginDto);
     }
 
     //  프로필 수정 페이지 > 현재 로그인된 회원의 프로필 정보 불러오기

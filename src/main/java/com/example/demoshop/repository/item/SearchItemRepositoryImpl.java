@@ -228,25 +228,21 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
         if (condition.getSanrioCharacters() != null) {
             whereClause.and(item.sanrioCharacters.eq(condition.getSanrioCharacters()));
         }
-        String searchTerm = "%" + condition.getTag().toLowerCase() + "%";
         // 태그 검색 조건을 가져옵니다
-        List<TagOption> tagOptions = TagOption.fromNameKor(condition.getTag());
-        for (TagOption tagOption : tagOptions) {
-            log.info("tag name= {}", tagOption.getNameKor());
+        if (condition.getTag() != null && !condition.getTag().isBlank()) {
+            List<TagOption> tagOptions = TagOption.fromNameKor(condition.getTag());
+
+            if (!tagOptions.isEmpty()) {
+                whereClause.and(
+                        recommendedTag.tagOption.in(tagOptions)
+                                .or(userDefinedTag.name.contains(condition.getTag()))
+                );
+            } else {
+                // 태그 목록이 비어 있어도 유저가 직접 입력한 값에 따라 검색되게
+                whereClause.and(userDefinedTag.name.contains(condition.getTag()));
+            }
         }
 
-        // 태그 검색 조건이 비어 있지 않은 경우
-        if (!tagOptions.isEmpty()) {
-            whereClause.and(
-                    recommendedTag.tagOption.in(tagOptions)
-                            .or(userDefinedTag.name.toLowerCase().like(searchTerm))
-            );
-        } else {
-            // 태그 검색 조건이 비어 있는 경우
-            whereClause.and(
-                    userDefinedTag.name.toLowerCase().like(searchTerm)
-            );
-        }
         return whereClause;
     }
 
@@ -280,22 +276,7 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
         return new PageImpl<>(finalItems, pageable, total);
     }
 
-    private static BooleanBuilder buildNameSearchConditionForMainPage(SearchCondition condition, QItem item) {
-        BooleanBuilder whereClause = new BooleanBuilder();
 
-        if (condition.getSanrioCharacters() != null) {
-            whereClause.and(item.sanrioCharacters.eq(condition.getSanrioCharacters()));
-        }
-
-        if (condition.getItemName() != null && !condition.getItemName().isEmpty()) {
-            String[] searchKeywords = condition.getItemName().split("\\s+"); // 검색어를 공백 기준으로 분리
-            for (String keyword : searchKeywords) {
-                String searchTerm = "%" + keyword.toLowerCase() + "%";
-                whereClause.and(item.nameKor.toLowerCase().like(searchTerm)); // 각 키워드가 포함된 조건 추가
-            }
-        }
-        return whereClause;
-    }
 
     @Override
     public Page<ThumbnailItemDto> searchByCategory(Pageable pageable, CategoryCondition condition, String userEmail) {
