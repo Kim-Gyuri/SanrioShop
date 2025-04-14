@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface ItemRepository extends JpaRepository<Item, Long>, SearchItemRepository {
@@ -24,5 +25,12 @@ public interface ItemRepository extends JpaRepository<Item, Long>, SearchItemRep
 
     // for test
     Optional<Item> findByNameKor(String itemName);
+
+
+    @Query("SELECT i FROM Item i WHERE i.nameKor LIKE %:keyword% AND i.sanrioCharacters = :character")
+    List<Item> searchByKeywordAndCharacter(@Param("keyword") String keyword, @Param("character") SanrioCharacters character);
+
+    @Query(value = "SELECT * FROM item WHERE MATCH(name_kor) AGAINST(:keyword IN NATURAL LANGUAGE MODE)", nativeQuery = true)
+    List<Item> searchByItemName(@Param("keyword") String keyword);
 
 }

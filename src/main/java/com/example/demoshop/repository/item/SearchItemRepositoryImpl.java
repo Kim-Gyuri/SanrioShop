@@ -31,16 +31,18 @@ import org.springframework.data.domain.Pageable;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.example.demoshop.domain.users.user.QUser.user;
+import static com.example.demoshop.domain.wishList.QWishItem.wishItem;
+import static com.example.demoshop.domain.wishList.QWishList.*;
+import static com.example.demoshop.response.item.ThumbnailItemDto.convertToThumbnailItemDto;
 
 
 @Slf4j
 public class SearchItemRepositoryImpl implements SearchItemRepository {
     private final JPAQueryFactory queryFactory;
 
-
     public SearchItemRepositoryImpl(EntityManager em) {
         this.queryFactory = new JPAQueryFactory(em);
-
     }
 
 
@@ -50,8 +52,8 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
         QItem item = QItem.item;
         QItemImg itemImg = QItemImg.itemImg;
         QSaleItem saleItem = QSaleItem.saleItem;
-        QUser buyer = QUser.user; // SaleItem의 buyer를 나타내는 QUser
-        QUser seller = QUser.user; // Item의 uploader를 나타내는 QUser
+        QUser buyer = user; // SaleItem의 buyer를 나타내는 QUser
+        QUser seller = user; // Item의 uploader를 나타내는 QUser
 
         // Fetch results
         List<SellerItemDto> items = queryFactory
@@ -88,7 +90,7 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
     public SaleItemResponse findSaleItemDetail(Long itemId) {
         QSaleItem saleItem = QSaleItem.saleItem;
         QItem item = QItem.item;
-        QUser buyer = QUser.user;
+        QUser buyer = user;
 
         return queryFactory
                 .select(new QSaleItemResponse(buyer.email, saleItem.item.nameKor, saleItem.price))
@@ -187,6 +189,38 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
         return fetchOne != null;
     }
 
+
+    @Override
+    public Page<ThumbnailItemDto> searchMainPageItem(Pageable pageable,SearchCondition condition, String userEmail) {
+        QItem item = QItem.item;
+        QUserDefinedTag userDefinedTag = QUserDefinedTag.userDefinedTag;
+        QRecommendedTag recommendedTag = QRecommendedTag.recommendedTag;
+
+        List<Item> items = queryFactory.selectFrom(item)
+                .distinct()
+                .leftJoin(item.recommendedTagList, recommendedTag)
+                .leftJoin(item.userDefinedTagList, userDefinedTag)
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        long total = queryFactory.select(item.id.countDistinct())
+                .from(item)
+                .leftJoin(item.recommendedTagList, recommendedTag)
+                .leftJoin(item.userDefinedTagList, userDefinedTag)
+                .fetchOne();
+
+        // 상품에 찜하기를 누른 유저 정보를 찾음.
+        Map<Long, List<String>> likers = getLikerTuplesByItemIds();
+
+        // Map ItemTemp to ItemDto
+        List<ThumbnailItemDto> finalItems = items.stream()
+                .map(itemTemp -> convertToThumbnailItemDto(itemTemp, likers, userEmail))
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(finalItems, pageable, total);
+    }
+
     @Override
     public Page<ThumbnailItemDto> searchMainPageItems_tag(Pageable pageable, SearchCondition condition, String userEmail) {
 
@@ -213,7 +247,7 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
                 .fetchOne();
 
         // 상품에 찜하기를 누른 유저 정보를 찾음.
-        Map<Long, List<String>> likers = getLikers();
+        Map<Long, List<String>> likers = getLikerTuplesByItemIds();
 
         // Map ItemTemp to ItemDto
         List<ThumbnailItemDto> finalItems = items.stream()
@@ -225,101 +259,26 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
 
     private static BooleanBuilder buildTagSearchConditionForMainPage(SearchCondition condition, QItem item, QRecommendedTag recommendedTag, QUserDefinedTag userDefinedTag) {
         BooleanBuilder whereClause = new BooleanBuilder();
+
         if (condition.getSanrioCharacters() != null) {
             whereClause.and(item.sanrioCharacters.eq(condition.getSanrioCharacters()));
         }
+
         // 태그 검색 조건을 가져옵니다
-        if (condition.getTag() != null && !condition.getTag().isBlank()) {
-            List<TagOption> tagOptions = TagOption.fromNameKor(condition.getTag());
+        if (condition.getKeyword() != null && !condition.getKeyword().isBlank()) {
+            List<TagOption> tagOptions = TagOption.fromNameKor(condition.getKeyword() );
 
             if (!tagOptions.isEmpty()) {
                 whereClause.and(
                         recommendedTag.tagOption.in(tagOptions)
-                                .or(userDefinedTag.name.contains(condition.getTag()))
+                                .or(userDefinedTag.name.contains(condition.getKeyword() ))
                 );
             } else {
                 // 태그 목록이 비어 있어도 유저가 직접 입력한 값에 따라 검색되게
-                whereClause.and(userDefinedTag.name.contains(condition.getTag()));
+                whereClause.and(userDefinedTag.name.contains(condition.getKeyword() ));
             }
         }
 
-        return whereClause;
-    }
-
-
-    @Override
-    public Page<ThumbnailItemDto> searchMainPageItems_name(Pageable pageable, SearchCondition condition, String userEmail) {
-
-        QItem item = QItem.item;
-
-        BooleanBuilder whereClause = buildNameSearchConditionForMainPage(condition, item);
-
-        List<Item> items = queryFactory.selectFrom(item)
-                .where(whereClause)
-                .offset(pageable.getOffset())   // Set the starting point of the results
-                .limit(pageable.getPageSize())  // Set the number of results to return
-                .fetch();
-
-        long total = queryFactory.select(item.count())
-                .from(item)
-                .where(whereClause)
-                .fetchOne();
-
-        // 상품에 찜하기를 누른 유저 정보를 찾음.
-        Map<Long, List<String>> likers = getLikers();
-
-        // Map ItemTemp to ItemDto
-        List<ThumbnailItemDto> finalItems = items.stream()
-                .map(itemTemp -> convertToThumbnailItemDto(itemTemp, likers, userEmail))
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(finalItems, pageable, total);
-    }
-
-
-
-    @Override
-    public Page<ThumbnailItemDto> searchByCategory(Pageable pageable, CategoryCondition condition, String userEmail) {
-        QItem item = QItem.item;
-
-        BooleanBuilder whereClause = buildCategorySearchCondition(condition, item);
-
-        List<Item> items = queryFactory.selectFrom(item)
-                .where(whereClause)
-                .offset(pageable.getOffset())   // Set the starting point of the results
-                .limit(pageable.getPageSize())  // Set the number of results to return
-                .fetch();
-
-        long total = queryFactory.select(item.count())
-                .from(item)
-                .where(whereClause)
-                .fetchOne();
-
-        // 상품에 찜하기를 누른 유저 정보를 찾음.
-        Map<Long, List<String>> likers = getLikers();
-
-        // Map ItemTemp to ItemDto
-        List<ThumbnailItemDto> finalItems = items.stream()
-                .map(itemTemp -> convertToThumbnailItemDto(itemTemp, likers, userEmail))
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(finalItems, pageable, total);
-    }
-
-    private static BooleanBuilder buildCategorySearchCondition(CategoryCondition condition, QItem item) {
-        BooleanBuilder whereClause = new BooleanBuilder();
-
-        if (condition.getMainCategory() != null) {
-            whereClause.and(item.mainCategory.eq(condition.getMainCategory()));
-        }
-
-        if (condition.getSubCategory() != null) {
-            whereClause.and(item.subCategory.eq(condition.getSubCategory()));
-        }
-
-        if (condition.getSanrioCharacters() != null) {
-            whereClause.and(item.sanrioCharacters.eq(condition.getSanrioCharacters()));
-        }
         return whereClause;
     }
 
@@ -350,7 +309,7 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
                 .fetchOne();
 
         // 상품에 찜하기를 누른 유저 정보를 찾음.
-        Map<Long, List<String>> likers = getLikers();
+        Map<Long, List<String>> likers = getLikerTuplesByItemIds();
 
         // Map ItemTemp to ItemDto
         List<ThumbnailItemDto> finalItems = items.stream()
@@ -376,50 +335,27 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
             whereClause.and(item.sanrioCharacters.eq(condition.getSanrioCharacters()));
         }
 
-        String searchTerm = "%" + condition.getTag().toLowerCase() + "%";
         // 태그 검색 조건을 가져옵니다
-        List<TagOption> tagOptions = TagOption.fromNameKor(condition.getTag());
+        if (condition.getTag() != null && !condition.getTag().isBlank()) {
+            List<TagOption> tagOptions = TagOption.fromNameKor(condition.getTag());
 
-        // 태그 검색 조건이 비어 있지 않은 경우
-        if (!tagOptions.isEmpty()) {
-            whereClause.and(
-                    recommendedTag.tagOption.in(tagOptions)
-                            .or(userDefinedTag.name.toLowerCase().like(searchTerm))
-            );
-        } else {
-            // 태그 검색 조건이 비어 있는 경우
-            whereClause.and(
-                    userDefinedTag.name.toLowerCase().like(searchTerm)
-            );
+            if (!tagOptions.isEmpty()) {
+                whereClause.and(
+                        recommendedTag.tagOption.in(tagOptions)
+                                .or(userDefinedTag.name.contains(condition.getTag()))
+                );
+            } else {
+                // 태그 목록이 비어 있어도 유저가 직접 입력한 값에 따라 검색되게
+                whereClause.and(userDefinedTag.name.contains(condition.getTag()));
+            }
         }
+
         return whereClause;
     }
 
 
-    private ThumbnailItemDto convertToThumbnailItemDto(Item item, Map<Long, List<String>> likers, String userEmail) {
-        return new ThumbnailItemDto(
-                item.getId(),
-                item.getNameKor(),
-                item.getPrice(),
-                item.getDescription(),
-                item.getCreateAt(),
-                item.getLikeCount(),
-                item.getSanrioCharacters().getNameKor(),
-                item.getMainCategory().getNameKor(),
-                item.getSubCategory().getNameKor(),
-                item.getThumbnail(),
-                item.getUserTagNames(),
-                item.getRecommendTagNames(),
-                likers.getOrDefault(item.getId(), List.of()),
-                likers.getOrDefault(item.getId(), List.of()).contains(userEmail)
-        );
-    }
-
-    private Map<Long, List<String>> getLikers() {
-
-        QUser user = QUser.user;
-        QWishItem wishItem = QWishItem.wishItem;
-        QWishList wishList = QWishList.wishList;
+    @Override
+    public  Map<Long, List<String>> getLikerTuplesByItemIds() {
 
         List<Tuple> likerTuples = queryFactory
                 .select(wishItem.item.id, user.email)
@@ -437,6 +373,7 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
 
         return likers;
     }
+
 
     @Override
     public List<UserNotificationDto> findUsersByItemId(Long itemId) {

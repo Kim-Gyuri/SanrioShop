@@ -76,10 +76,11 @@ public class SecurityConfig {
                                 "/images/**",
                                 "/css/**",
                                 "/js/**",
-                                "/swagger-ui/**",
+                                "/swagger-ui/**", // /swagger-ui/index.html
                                 "/v3/api-docs/**",
                                 "/api-docs/**"
                         ).permitAll()
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
 
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

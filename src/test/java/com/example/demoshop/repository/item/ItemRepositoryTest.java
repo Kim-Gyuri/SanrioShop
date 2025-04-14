@@ -11,6 +11,7 @@ import com.example.demoshop.request.item.CreateItemRequest;
 import com.example.demoshop.service.item.ItemService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
@@ -21,6 +22,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+
+import static com.example.demoshop.domain.item.common.SanrioCharacters.CINNAMOROLL;
 
 
 @Slf4j
@@ -37,6 +40,25 @@ class ItemRepositoryTest {
 
     @Autowired
     private ItemRepository itemRepository;
+
+
+    @Test
+    void print() {
+        List<Item> items = itemRepository.searchByItemName("1시");
+
+        for (Item item : items) {
+            log.info("item name ={}", item.getNameKor());
+        }
+
+        log.info("산리오 & 상품명");
+        List<Item> items2 = itemRepository.searchByKeywordAndCharacter("1시", CINNAMOROLL);
+        for (Item item : items2) {
+            log.info("item name ={}", item.getNameKor());
+        }
+    }
+
+
+
 
     private User getUploaderDto() {
         User userDto = User.builder()

@@ -131,7 +131,7 @@ class ItemServiceTest {
         String targetName = "포차코 복조리";
         Pageable pageable = PageRequest.of(0, 20);
         SearchCondition condition = new SearchCondition();
-        condition.setItemName(targetName);
+        condition.setKeyword(targetName);
 
         log.info("더미 데이터 총 상품 개수: {}", itemRepository.count());
 

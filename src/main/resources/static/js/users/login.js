@@ -27,6 +27,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
                 alert("로그인되었습니다!");
                 window.location.href = "/view/home";
+                console.log(localStorage.getItem('accessToken'));
             } else {
                 alert("올바른 아이디와 비밀번호를 입력해주세요.");
             }

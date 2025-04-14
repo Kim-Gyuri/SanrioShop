@@ -7,8 +7,9 @@ import com.example.demoshop.response.sale.SaleItemResponse;
 import com.example.demoshop.response.sale.UserNotificationDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-
+import com.querydsl.core.Tuple;
 import java.util.List;
+import java.util.Map;
 
 public interface SearchItemRepository {
 
@@ -35,14 +36,19 @@ public interface SearchItemRepository {
      * searchMainPageItems_name : 상품명 검색 조건을 사용하여 상품을 조회합니다.
      */
     Page<ThumbnailItemDto> searchMainPageItems_tag(Pageable pageable, SearchCondition condition, String userEmail);
-    Page<ThumbnailItemDto> searchMainPageItems_name(Pageable pageable, SearchCondition condition, String userEmail);
+
+
+    // 페이징 목록
+    Page<ThumbnailItemDto> searchMainPageItem(Pageable pageable, SearchCondition condition, String userEmail);
 
     /** 카테고리 페이지
      * searchByCategory : 주어진 카테고리 조건을 기준으로 상품을 조회합니다.
      * searchByCategory_tag : 선택된 카테고리 조건에 추가로 태그 검색 조건을 적용하여 상품을 조회합니다.
      */
-    Page<ThumbnailItemDto> searchByCategory(Pageable pageable, CategoryCondition condition, String userEmail);
+   // Page<ThumbnailItemDto> searchByCategory(Pageable pageable, CategoryCondition condition, String userEmail);
     Page<ThumbnailItemDto> searchByCategory_tag(Pageable pageable, CategoryCondition condition, String userEmail);
 
 
+
+    Map<Long, List<String>> getLikerTuplesByItemIds();
 }

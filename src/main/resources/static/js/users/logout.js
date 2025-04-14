@@ -1,7 +1,7 @@
 
 function logout() {
     // 로그아웃 요청 보내기
-    fetch('/api/user/logout', {
+    fetch('/logout', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

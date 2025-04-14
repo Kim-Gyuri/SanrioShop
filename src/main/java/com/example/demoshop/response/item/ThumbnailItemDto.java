@@ -1,5 +1,6 @@
 package com.example.demoshop.response.item;
 
+import com.example.demoshop.domain.item.Item;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -7,6 +8,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 썸네일에 배치되는 아이템 정렬용 -> 메인 페이지, 카테고리 페이지
@@ -47,5 +49,25 @@ public class ThumbnailItemDto {
         this.recommendedTags = recommendedTags;
         this.likers = likers;
         this.isLikedByUser = isLikedByUser;
+    }
+
+
+    public static ThumbnailItemDto convertToThumbnailItemDto(Item item, Map<Long, List<String>> likers, String userEmail) {
+        return new ThumbnailItemDto(
+                item.getId(),
+                item.getNameKor(),
+                item.getPrice(),
+                item.getDescription(),
+                item.getCreateAt(),
+                item.getLikeCount(),
+                item.getSanrioCharacters().getNameKor(),
+                item.getMainCategory().getNameKor(),
+                item.getSubCategory().getNameKor(),
+                item.getThumbnail(),
+                item.getUserTagNames(),
+                item.getRecommendTagNames(),
+                likers.getOrDefault(item.getId(), List.of()),
+                likers.getOrDefault(item.getId(), List.of()).contains(userEmail)
+        );
     }
 }

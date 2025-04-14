@@ -2,6 +2,7 @@ package com.example.demoshop.controller;
 
 import com.example.demoshop.controller.dto.CategoryCondition;
 import com.example.demoshop.controller.dto.SearchCondition;
+import com.example.demoshop.controller.dto.SearchType;
 import com.example.demoshop.domain.item.common.MainCategory;
 import com.example.demoshop.domain.item.common.SanrioCharacters;
 import com.example.demoshop.domain.item.common.SubCategory;
@@ -40,16 +41,28 @@ public class ItemApiController {
     private final TagService tagService;
     private final PagedResourcesAssembler<ThumbnailItemDto> pagedResourcesAssembler;
 
+
+    @GetMapping("/items/list")
+    public PagedModel<EntityModel<ThumbnailItemDto>> itemList(@AuthenticationPrincipal User user, Pageable pageable,
+                                                              @RequestParam(required = false, name= "sanrio") SanrioCharacters sanrioCharacters,
+                                                              @RequestParam(required = false, name = "keyword") String keyword,
+                                                              @RequestParam(required = false, name = "searchType") SearchType searchType) {
+        SearchCondition condition = new SearchCondition(sanrioCharacters, searchType, keyword);
+
+        Page<ThumbnailItemDto> response = itemService.searchItems(pageable, condition, user.getEmail());
+
+        return pagedResourcesAssembler.toModel(response);
+    }
+
     /**
      * 홈 > 메인페이지에서 상품 검색조회
      */
     @GetMapping("/items/search")
     public PagedModel<EntityModel<ThumbnailItemDto>> testPage_search_main(@AuthenticationPrincipal User user, Pageable pageable,
                                                                           @RequestParam(required = false, name= "sanrio") SanrioCharacters sanrioCharacters,
-                                                                          @RequestParam(required = false, name = "tag") String tag,
                                                                           @RequestParam(required = false, name = "itemName") String itemName) {
 
-        SearchCondition condition = new SearchCondition(sanrioCharacters, tag, itemName);
+        SearchCondition condition = new SearchCondition(sanrioCharacters, SearchType.ITEM_NAME, itemName);
 
         Page<ThumbnailItemDto> response = itemService.search_fetch_mainPage(pageable, condition, user.getEmail());
 

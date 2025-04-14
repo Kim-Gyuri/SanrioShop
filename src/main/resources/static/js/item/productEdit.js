@@ -405,6 +405,11 @@ $(document).ready(function () {
             },
             error: function(xhr) {
                 console.error('Error deleting tag:', xhr.status);
+                if (xhr.status === 401) {
+                    window.alert("로그인한 사용자만 게시글을 조회할 수 있습니다!");
+                    window.location.href = '/view/login';
+                    return;
+                }
             }
         });
     }

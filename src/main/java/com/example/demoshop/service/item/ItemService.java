@@ -2,6 +2,7 @@ package com.example.demoshop.service.item;
 
 import com.example.demoshop.controller.dto.CategoryCondition;
 import com.example.demoshop.controller.dto.SearchCondition;
+import com.example.demoshop.controller.dto.SearchType;
 import com.example.demoshop.domain.item.Item;
 import com.example.demoshop.domain.item.ItemImg;
 import com.example.demoshop.domain.item.RecommendedTag;
@@ -28,19 +29,24 @@ import com.example.demoshop.repository.users.UserRepository;
 import com.example.demoshop.request.sale.CreateNotificationRequest;
 import com.example.demoshop.response.item.*;
 import com.example.demoshop.response.sale.UserNotificationDto;
+import com.querydsl.core.Tuple;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.example.demoshop.response.item.ThumbnailItemDto.convertToThumbnailItemDto;
 import static com.example.demoshop.utils.constants.ImgConstants.*;
 
 @Slf4j
@@ -173,13 +179,32 @@ public class ItemService {
     @Transactional(readOnly = true)
     public Page<ThumbnailItemDto> search_fetch_category(Pageable pageable, CategoryCondition condition, String userEmail) {
 
-        if (hasTagSearchCondition(condition.getTag())) {
-            return itemRepository.searchByCategory_tag(pageable, condition, userEmail);
-        }
-
-        return itemRepository.searchByCategory(pageable, condition, userEmail);
+        return itemRepository.searchByCategory_tag(pageable, condition, userEmail);
     }
 
+
+    /**
+     * 홈 - 메인 페이지 - 페이징 목록
+     */
+    @Transactional(readOnly = true)
+    public Page<ThumbnailItemDto> itemList(Pageable pageable, SearchCondition condition, String userEmail) {
+        return itemRepository.searchMainPageItems_tag(pageable, condition, userEmail);
+    }
+
+
+    @Transactional(readOnly = true)
+    public Page<ThumbnailItemDto> searchItems(Pageable pageable, SearchCondition condition, String userEmail) {
+
+        if (condition.getSearchType() == null) {
+            condition.setSearchType(SearchType.TAG);
+        }
+
+        if (SearchType.ITEM_NAME.equals(condition.getSearchType())) {
+            return searchMainPageItems_name(pageable, condition, userEmail);
+        }
+
+        return itemRepository.searchMainPageItems_tag(pageable, condition, userEmail);
+    }
     /**
      * 홈 > 메인 페이지 - 검색
      */
@@ -187,17 +212,41 @@ public class ItemService {
     public Page<ThumbnailItemDto> search_fetch_mainPage(Pageable pageable, SearchCondition condition, String userEmail) {
 
         // 태그 검색
-        if (hasTagSearchCondition(condition.getTag())) {
+        if (hasTagSearchCondition(condition.getKeyword())) {
             return itemRepository.searchMainPageItems_tag(pageable, condition, userEmail);
         }
 
         // 상품명 검색
-        return itemRepository.searchMainPageItems_name(pageable, condition, userEmail);
+        return searchMainPageItems_name(pageable, condition, userEmail);
     }
 
     private static boolean hasTagSearchCondition(String tag) {
         return !(tag == null || tag.isEmpty());
     }
+
+    public Page<ThumbnailItemDto> searchMainPageItems_name(Pageable pageable, SearchCondition condition, String userEmail) {
+        List<Item> items = new ArrayList<>();  // Initialize items as an empty list
+
+        // FT itemName 검색 (when no characters are selected)
+        if (condition.getSanrioCharacters() == null) {
+            items = itemRepository.searchByItemName(condition.getKeyword());
+        } else {
+            // FT itemName 검색 + Sanrio characters 검색
+            items = itemRepository.searchByKeywordAndCharacter(condition.getKeyword(), condition.getSanrioCharacters());
+        }
+
+        // Get likers' info
+        Map<Long, List<String>> likers = itemRepository.getLikerTuplesByItemIds();
+
+        // Convert to ThumbnailItemDto
+        List<ThumbnailItemDto> finalItems = items.stream()
+                .map(itemTemp -> convertToThumbnailItemDto(itemTemp, likers, userEmail))
+                .collect(Collectors.toList());
+
+        return new PageImpl<>(finalItems, pageable, finalItems.size());
+    }
+
+
 
     /**
      * 홈 > 상품 선택했을 때, 상품 상세 페이지
