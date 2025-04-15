@@ -22,6 +22,7 @@ import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+
+import static com.example.demoshop.utils.constants.ResponseConstants.CREATED;
+import static com.example.demoshop.utils.constants.ResponseConstants.OK;
 
 @Slf4j
 @RequestMapping("/api")
@@ -81,8 +85,8 @@ public class ItemApiController {
      * 홈 > 상품 선택했을 때, 상품 상세 페이지
      */
     @GetMapping("/items/product/{itemId}")
-    public ProductDto findProduct(@AuthenticationPrincipal User user, @PathVariable("itemId") Long id) {
-        return itemService.findProduct(user, id);
+    public ResponseEntity<ProductDto> findProduct(@AuthenticationPrincipal User user, @PathVariable("itemId") Long id) {
+        return ResponseEntity.ok(itemService.findProduct(user, id));
     }
 
     /**
@@ -90,20 +94,23 @@ public class ItemApiController {
      */
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/items", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public void write(@AuthenticationPrincipal User user,
-                      @Validated @RequestPart(name = "itemCreate") CreateItemRequest itemRequest,
-                      @RequestParam(name = "productImage") List<MultipartFile> multipartFiles) throws IOException {
+    public ResponseEntity<Void> write(@AuthenticationPrincipal User user,
+                                      @Validated @RequestPart(name = "itemCreate") CreateItemRequest itemRequest,
+                                      @RequestParam(name = "productImage") List<MultipartFile> multipartFiles) throws IOException {
 
         itemService.createItem(user, itemRequest, multipartFiles);
 
+        return CREATED;
     }
 
     /**
      * 판매자: 판매 상품 삭제
      */
     @DeleteMapping("/items/{id}")
-    public void deleteItem(@AuthenticationPrincipal User user, @PathVariable("id") Long itemId) {
+    public ResponseEntity<Void> deleteItem(@AuthenticationPrincipal User user, @PathVariable("id") Long itemId) {
         itemService.deleteItem(itemId);
+
+        return OK;
     }
 
     /**
@@ -111,10 +118,12 @@ public class ItemApiController {
      */
     @ResponseStatus(HttpStatus.OK)
     @PatchMapping(value = "/items/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public void update(@PathVariable("id") Long itemId, @RequestPart(name = "itemUpdate", required = false) UpdateItemRequest itemRequest,
+    public ResponseEntity<Void> update(@PathVariable("id") Long itemId, @RequestPart(name = "itemUpdate", required = false) UpdateItemRequest itemRequest,
                        @RequestParam(name = "productImage", required = false) List<MultipartFile> multipartFiles) throws IOException {
 
         itemService.updateItem(itemId, itemRequest, multipartFiles);
+
+        return OK;
     }
 
 
@@ -122,10 +131,9 @@ public class ItemApiController {
      * 상품 수정 페이지를 위한 상품 정보 불러오기
      */
     @GetMapping("/items/product/{id}/edit")
-    public ItemDetailDto findItemForUpdate(@PathVariable("id") Long itemId) {
-        return itemService.findItemDetail(itemId);
+    public ResponseEntity<ItemDetailDto> findItemForUpdate(@PathVariable("id") Long itemId) {
+        return ResponseEntity.ok(itemService.findItemDetail(itemId));
     }
-
 
 
     /**
@@ -133,8 +141,10 @@ public class ItemApiController {
      */
     @ResponseStatus(HttpStatus.OK)
     @DeleteMapping(value = "/items/img")
-    public void deleteImg(@AuthenticationPrincipal User user, @RequestParam ("img") String imgUrl) {
+    public ResponseEntity<Void> deleteImg(@AuthenticationPrincipal User user, @RequestParam ("img") String imgUrl) {
         itemImgService.deleteImg(imgUrl);
+
+        return OK;
     }
 
     /**
@@ -142,14 +152,18 @@ public class ItemApiController {
      */
     @ResponseStatus(HttpStatus.OK)
     @DeleteMapping(value = "/items/userTag/{id}")
-    public void deleteUserTag(@AuthenticationPrincipal User user, @PathVariable("id") Long userDefinedTagId) {
+    public ResponseEntity<Void> deleteUserTag(@AuthenticationPrincipal User user, @PathVariable("id") Long userDefinedTagId) {
         tagService.removeUserDefinedTag(userDefinedTagId);
+
+        return OK;
     }
 
     @ResponseStatus(HttpStatus.OK)
     @DeleteMapping(value = "/items/recommendedTag/{id}")
-    public void deleteRecommendedTag(@AuthenticationPrincipal User user,  @PathVariable("id") Long recommendedTagId) {
+    public ResponseEntity<Void> deleteRecommendedTag(@AuthenticationPrincipal User user, @PathVariable("id") Long recommendedTagId) {
         tagService.removeRecommendedTag(recommendedTagId);
+
+        return OK;
     }
 
 }

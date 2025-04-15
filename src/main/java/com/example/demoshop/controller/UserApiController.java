@@ -22,6 +22,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 import static com.example.demoshop.utils.constants.ResponseConstants.CREATED;
+import static com.example.demoshop.utils.constants.ResponseConstants.OK;
 
 @Slf4j
 @RestController
@@ -65,13 +66,17 @@ public class UserApiController {
     }
 
     @PatchMapping("/user/nickname")
-    public void updateNickname(@AuthenticationPrincipal User user, @RequestBody NicknameUpdate nicknameUpdate) {
+    public ResponseEntity<Void> updateNickname(@AuthenticationPrincipal User user, @RequestBody NicknameUpdate nicknameUpdate) {
         userService.updateNickname(user, nicknameUpdate.getNickname());
+
+        return OK;
     }
 
     @PatchMapping(value = "/user/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public void updateProfile(@AuthenticationPrincipal User user, @RequestParam(name = "file") MultipartFile file) throws IOException {
+    public ResponseEntity<Void> updateProfile(@AuthenticationPrincipal User user, @RequestParam(name = "file") MultipartFile file) throws IOException {
         userService.updateProfileImg(user, file);
+
+        return OK;
     }
 
 

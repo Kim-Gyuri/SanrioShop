@@ -13,6 +13,7 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,8 +28,8 @@ public class WishItemApiController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/wish")
-    public WishItemResponse addWishList(@AuthenticationPrincipal User user, @RequestBody IdRequest idRequest) {
-        return wishListService.markAsWished(user, idRequest.getId());
+    public ResponseEntity<WishItemResponse> addWishList(@AuthenticationPrincipal User user, @RequestBody IdRequest idRequest) {
+        return ResponseEntity.ok(wishListService.markAsWished(user, idRequest.getId()));
     }
 
     @GetMapping(value = "/wish")
@@ -39,7 +40,7 @@ public class WishItemApiController {
     }
 
     @DeleteMapping(value = "/wish/wishItem/{itemId}")
-    public WishItemResponse deleteWish(@AuthenticationPrincipal User user, @PathVariable("itemId") Long itemId) {
-        return wishListService.unmarkAsWished(user, itemId);
+    public ResponseEntity<WishItemResponse> deleteWish(@AuthenticationPrincipal User user, @PathVariable("itemId") Long itemId) {
+        return ResponseEntity.ok(wishListService.unmarkAsWished(user, itemId));
     }
 }

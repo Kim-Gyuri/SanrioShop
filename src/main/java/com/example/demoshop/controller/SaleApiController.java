@@ -16,10 +16,14 @@ import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static com.example.demoshop.utils.constants.ResponseConstants.CREATED;
+import static com.example.demoshop.utils.constants.ResponseConstants.OK;
 
 @Slf4j
 @RequestMapping("/api")
@@ -36,8 +40,10 @@ public class SaleApiController {
     // 주문요청
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/orders")
-    public void addWishList(@AuthenticationPrincipal User user, @RequestBody IdRequest idRequest) {
+    public ResponseEntity<Void> addWishList(@AuthenticationPrincipal User user, @RequestBody IdRequest idRequest) {
         saleItemService.contactTrade(user.getEmail(), idRequest.getId());
+
+        return CREATED;
     }
 
     // 주문상품 조회 (by 구매 회원)
@@ -58,8 +64,8 @@ public class SaleApiController {
 
     // 판매 조회> 판매상품 > 주문 상세조회 (주문자 정보 확인용도)
     @GetMapping("/sellers/orders/{itemId}")
-    public SaleItemResponse findSaleItemDetail(@AuthenticationPrincipal User user, @PathVariable("itemId") Long id) {
-        return saleItemService.findOrderDetail(id);
+    public ResponseEntity<SaleItemResponse> findSaleItemDetail(@AuthenticationPrincipal User user, @PathVariable("itemId") Long id) {
+        return ResponseEntity.ok(saleItemService.findOrderDetail(id));
     }
 
     @GetMapping("/message")
@@ -68,8 +74,10 @@ public class SaleApiController {
     }
 
     @DeleteMapping("/message/{id}")
-    public void deleteMessage(@AuthenticationPrincipal User user, @PathVariable("id") Long messageId) {
+    public ResponseEntity<Void> deleteMessage(@AuthenticationPrincipal User user, @PathVariable("id") Long messageId) {
         saleItemService.deleteMessage(messageId);
+
+        return OK;
     }
 
 }
