@@ -33,8 +33,9 @@ public class CustomLogoutFilter extends GenericFilterBean {
     }
 
     private void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
+
          /**
-         *  path and method verify
+         *  path and method 검증하기
          */
         String requestUri = request.getRequestURI();
         if (!requestUri.matches("^\\/logout$")) {
@@ -49,7 +50,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
         }
 
         /**
-         *  get refresh token
+         *  refresh token을 꺼내기
          */
         String refresh = null;
         Cookie[] cookies = request.getCookies();
@@ -67,7 +68,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
         }
 
         /**
-         *  refresh null check
+         *  refresh 토큰이 null인지 확인.
          */
         if (refresh == null) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
@@ -75,7 +76,7 @@ public class CustomLogoutFilter extends GenericFilterBean {
         }
 
         /**
-         * expired check
+         * refresh 토큰이 만료되었는지?
          */
         try {
             jwtProperties.isExpired(refresh);
@@ -113,16 +114,14 @@ public class CustomLogoutFilter extends GenericFilterBean {
          */
         refreshRepository.deleteByRefresh(refresh);
 
-        //Refresh 토큰 Cookie 값 0
+        //Refresh 토큰 Cookie 값 0으로 초기화
         Cookie cookie = invalidateRefreshTokenCookie();
 
         response.addCookie(cookie);
         response.setStatus(HttpServletResponse.SC_OK);
     }
 
-
-
-
+    // 쿠키 삭제
     private static Cookie invalidateRefreshTokenCookie() {
         Cookie cookie = new Cookie(JWT_REFRESH, null);
         cookie.setMaxAge(IMMEDIATE_EXPIRATION);

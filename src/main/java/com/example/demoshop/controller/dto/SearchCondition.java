@@ -11,7 +11,7 @@ import lombok.*;
 @Setter
 public class SearchCondition {
 
-    private SanrioCharacters sanrioCharacters;
-    private SearchType searchType;
-    private String keyword;
+    private SanrioCharacters sanrioCharacters; // 산리오 구분
+    private SearchType searchType; // 타입> 태그/상품명
+    private String keyword; // 검색어
 }

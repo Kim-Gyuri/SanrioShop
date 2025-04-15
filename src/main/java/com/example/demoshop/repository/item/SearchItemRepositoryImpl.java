@@ -189,38 +189,6 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
         return fetchOne != null;
     }
 
-
-    @Override
-    public Page<ThumbnailItemDto> searchMainPageItem(Pageable pageable,SearchCondition condition, String userEmail) {
-        QItem item = QItem.item;
-        QUserDefinedTag userDefinedTag = QUserDefinedTag.userDefinedTag;
-        QRecommendedTag recommendedTag = QRecommendedTag.recommendedTag;
-
-        List<Item> items = queryFactory.selectFrom(item)
-                .distinct()
-                .leftJoin(item.recommendedTagList, recommendedTag)
-                .leftJoin(item.userDefinedTagList, userDefinedTag)
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        long total = queryFactory.select(item.id.countDistinct())
-                .from(item)
-                .leftJoin(item.recommendedTagList, recommendedTag)
-                .leftJoin(item.userDefinedTagList, userDefinedTag)
-                .fetchOne();
-
-        // 상품에 찜하기를 누른 유저 정보를 찾음.
-        Map<Long, List<String>> likers = getLikerTuplesByItemIds();
-
-        // Map ItemTemp to ItemDto
-        List<ThumbnailItemDto> finalItems = items.stream()
-                .map(itemTemp -> convertToThumbnailItemDto(itemTemp, likers, userEmail))
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(finalItems, pageable, total);
-    }
-
     @Override
     public Page<ThumbnailItemDto> searchMainPageItems_tag(Pageable pageable, SearchCondition condition, String userEmail) {
 

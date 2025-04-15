@@ -7,7 +7,6 @@ import com.example.demoshop.response.sale.SaleItemResponse;
 import com.example.demoshop.response.sale.UserNotificationDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import com.querydsl.core.Tuple;
 import java.util.List;
 import java.util.Map;
 
@@ -31,24 +30,21 @@ public interface SearchItemRepository {
     // 회원이 특정 상품에 대해 찜하기를 등록했는지 확인합니다.
     boolean isExistInUserWishList(Long itemId, String userEmail);
 
+
     /** 메인 페이지
-     * searchMainPageItems_tag : 태그 검색 조건을 사용하여 상품을 조회합니다.
-     * searchMainPageItems_name : 상품명 검색 조건을 사용하여 상품을 조회합니다.
+     * searchMainPageItems_tag : (태그 + 산리오 구분) 검색가능
      */
     Page<ThumbnailItemDto> searchMainPageItems_tag(Pageable pageable, SearchCondition condition, String userEmail);
 
 
-    // 페이징 목록
-    Page<ThumbnailItemDto> searchMainPageItem(Pageable pageable, SearchCondition condition, String userEmail);
-
     /** 카테고리 페이지
-     * searchByCategory : 주어진 카테고리 조건을 기준으로 상품을 조회합니다.
-     * searchByCategory_tag : 선택된 카테고리 조건에 추가로 태그 검색 조건을 적용하여 상품을 조회합니다.
+     * searchByCategory_tag : (테마검색 + 태그) 검색가능
      */
-   // Page<ThumbnailItemDto> searchByCategory(Pageable pageable, CategoryCondition condition, String userEmail);
     Page<ThumbnailItemDto> searchByCategory_tag(Pageable pageable, CategoryCondition condition, String userEmail);
 
 
-
+    /**
+     * 상품마다 찜등록한 회원정보 조회  (상품 페이징 조회에서 상품에 대한 찜등록 정보를 찾기 위한 것)
+     */
     Map<Long, List<String>> getLikerTuplesByItemIds();
 }

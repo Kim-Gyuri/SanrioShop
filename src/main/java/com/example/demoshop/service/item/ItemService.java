@@ -183,15 +183,10 @@ public class ItemService {
     }
 
 
-    /**
-     * 홈 - 메인 페이지 - 페이징 목록
+
+    /*
+     * 홈 > 검색 (산리오 + 상품명 + 태그)
      */
-    @Transactional(readOnly = true)
-    public Page<ThumbnailItemDto> itemList(Pageable pageable, SearchCondition condition, String userEmail) {
-        return itemRepository.searchMainPageItems_tag(pageable, condition, userEmail);
-    }
-
-
     @Transactional(readOnly = true)
     public Page<ThumbnailItemDto> searchItems(Pageable pageable, SearchCondition condition, String userEmail) {
 
@@ -205,37 +200,21 @@ public class ItemService {
 
         return itemRepository.searchMainPageItems_tag(pageable, condition, userEmail);
     }
-    /**
-     * 홈 > 메인 페이지 - 검색
-     */
+
+    // 홈 > 상품명 검색
     @Transactional(readOnly = true)
-    public Page<ThumbnailItemDto> search_fetch_mainPage(Pageable pageable, SearchCondition condition, String userEmail) {
-
-        // 태그 검색
-        if (hasTagSearchCondition(condition.getKeyword())) {
-            return itemRepository.searchMainPageItems_tag(pageable, condition, userEmail);
-        }
-
-        // 상품명 검색
-        return searchMainPageItems_name(pageable, condition, userEmail);
-    }
-
-    private static boolean hasTagSearchCondition(String tag) {
-        return !(tag == null || tag.isEmpty());
-    }
-
     public Page<ThumbnailItemDto> searchMainPageItems_name(Pageable pageable, SearchCondition condition, String userEmail) {
-        List<Item> items = new ArrayList<>();  // Initialize items as an empty list
+        List<Item> items = new ArrayList<>();
 
         // FT itemName 검색 (when no characters are selected)
         if (condition.getSanrioCharacters() == null) {
             items = itemRepository.searchByItemName(condition.getKeyword());
         } else {
-            // FT itemName 검색 + Sanrio characters 검색
+            // (FT itemName + Sanrio) 검색
             items = itemRepository.searchByKeywordAndCharacter(condition.getKeyword(), condition.getSanrioCharacters());
         }
 
-        // Get likers' info
+        // (상품에 대한 찜등록 정보 조회)
         Map<Long, List<String>> likers = itemRepository.getLikerTuplesByItemIds();
 
         // Convert to ThumbnailItemDto
@@ -245,8 +224,6 @@ public class ItemService {
 
         return new PageImpl<>(finalItems, pageable, finalItems.size());
     }
-
-
 
     /**
      * 홈 > 상품 선택했을 때, 상품 상세 페이지

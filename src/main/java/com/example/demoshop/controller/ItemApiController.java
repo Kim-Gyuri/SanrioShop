@@ -42,6 +42,9 @@ public class ItemApiController {
     private final PagedResourcesAssembler<ThumbnailItemDto> pagedResourcesAssembler;
 
 
+    /**
+     * 홈 > (산리오 구분/태그/상품명)조건으로 검색
+     */
     @GetMapping("/items/list")
     public PagedModel<EntityModel<ThumbnailItemDto>> itemList(@AuthenticationPrincipal User user, Pageable pageable,
                                                               @RequestParam(required = false, name= "sanrio") SanrioCharacters sanrioCharacters,
@@ -54,24 +57,10 @@ public class ItemApiController {
         return pagedResourcesAssembler.toModel(response);
     }
 
-    /**
-     * 홈 > 메인페이지에서 상품 검색조회
-     */
-    @GetMapping("/items/search")
-    public PagedModel<EntityModel<ThumbnailItemDto>> testPage_search_main(@AuthenticationPrincipal User user, Pageable pageable,
-                                                                          @RequestParam(required = false, name= "sanrio") SanrioCharacters sanrioCharacters,
-                                                                          @RequestParam(required = false, name = "itemName") String itemName) {
-
-        SearchCondition condition = new SearchCondition(sanrioCharacters, SearchType.ITEM_NAME, itemName);
-
-        Page<ThumbnailItemDto> response = itemService.search_fetch_mainPage(pageable, condition, user.getEmail());
-
-        //return response;
-       return pagedResourcesAssembler.toModel(response);
-    }
 
     /**
-     * 홈 > 카테고리 메뉴 선택했을 때, 상품 정렬
+     * 홈 > 카테고리 메뉴 선택
+     * 태그 검색도 가능
      */
     @GetMapping("/items/category")
     public PagedModel<EntityModel<ThumbnailItemDto>> testPage_search_category(@AuthenticationPrincipal User user, Pageable pageable,
@@ -82,12 +71,11 @@ public class ItemApiController {
 
         CategoryCondition condition = new CategoryCondition(sanrioCharacters, mainCategory, subCategory, tag);
 
-        //return null;
         Page<ThumbnailItemDto> response = itemService.search_fetch_category(pageable, condition, user.getEmail());
 
-        //return response;
        return pagedResourcesAssembler.toModel(response);
     }
+
 
     /**
      * 홈 > 상품 선택했을 때, 상품 상세 페이지

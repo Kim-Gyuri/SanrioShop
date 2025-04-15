@@ -60,8 +60,8 @@ public class UserApiController {
 
     //  프로필 수정 페이지 > 현재 로그인된 회원의 프로필 정보 불러오기
     @GetMapping("/user")
-    public ProfileResponse currentUser(@AuthenticationPrincipal User user) {
-        return userService.currentUserProfile(user);
+    public ResponseEntity<ProfileResponse> currentUser(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(userService.currentUserProfile(user));
     }
 
     @PatchMapping("/user/nickname")

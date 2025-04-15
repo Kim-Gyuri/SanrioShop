@@ -1,6 +1,5 @@
 package com.example.demoshop.domain.item.common;
 
-import com.example.demoshop.service.item.ItemService;
 import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.*;

@@ -136,7 +136,7 @@ class ItemServiceTest {
         log.info("더미 데이터 총 상품 개수: {}", itemRepository.count());
 
         long startTime = System.currentTimeMillis();
-        Page<ThumbnailItemDto> result = itemService.search_fetch_mainPage(pageable, condition, user.getEmail());
+        Page<ThumbnailItemDto> result = itemService.searchItems(pageable, condition, user.getEmail());
         long endTime = System.currentTimeMillis();
 
         long duration = endTime - startTime;

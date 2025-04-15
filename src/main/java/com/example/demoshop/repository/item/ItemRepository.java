@@ -20,16 +20,18 @@ public interface ItemRepository extends JpaRepository<Item, Long>, SearchItemRep
     Optional<Item> findByIdWithLock(@Param("id") Long id);
 
     // nameKor에 해당하는 Item이 존재하는지 확인하는 메서드
-    boolean existsByNameKor(String nameKor);
-    boolean existsBySanrioCharacters(SanrioCharacters sanrioCharacters);
+    // boolean existsByNameKor(String nameKor);
+    // boolean existsBySanrioCharacters(SanrioCharacters sanrioCharacters);
 
     // for test
     Optional<Item> findByNameKor(String itemName);
 
 
+    // 산리오 캐릭터 + 상품명 검색(FT 방식)
     @Query("SELECT i FROM Item i WHERE i.nameKor LIKE %:keyword% AND i.sanrioCharacters = :character")
     List<Item> searchByKeywordAndCharacter(@Param("keyword") String keyword, @Param("character") SanrioCharacters character);
 
+    // 상품명 검색(FT 방식)
     @Query(value = "SELECT * FROM item WHERE MATCH(name_kor) AGAINST(:keyword IN NATURAL LANGUAGE MODE)", nativeQuery = true)
     List<Item> searchByItemName(@Param("keyword") String keyword);
 
