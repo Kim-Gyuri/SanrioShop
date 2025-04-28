@@ -255,6 +255,8 @@ function updateSubCategories() {
             subCategorySelect.appendChild(option);
         });
     }
+
+    updateTagOptions();
 }
 
 // 태그 옵션을 업데이트하는 함수
@@ -326,7 +328,7 @@ $(document).ready(function () {
     var counter = 0;
     var existingFiles = []; // 기존 파일 목록을 저장할 배열
     var recommendedTags = []; // 추천 태그를 저장할 배열
-    const selectedTags = new Set(); // 선택된 태그를 저장할 Set 객체
+    //const selectedTags = new Set(); // 선택된 태그를 저장할 Set 객체
 
     // 태그를 추가한다.
     function addTag(value) {
@@ -429,6 +431,8 @@ $(document).ready(function () {
         existingFiles.forEach(file => {
             formData.append('productImage', file); // 선택된 모든 이미지 파일 추가
         });
+
+        console.log('✅ 최종 selectedTags:', Array.from(selectedTags));
 
         // 상품 등록요청 ->
         let accessToken = localStorage.getItem('accessToken');

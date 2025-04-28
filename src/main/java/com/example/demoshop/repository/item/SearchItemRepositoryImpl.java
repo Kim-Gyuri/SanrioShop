@@ -23,9 +23,7 @@ import com.querydsl.core.Tuple;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 
 
 import java.util.*;
@@ -169,6 +167,8 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
     }
 
 
+
+    // 회원이 특정 상품에 대해 찜하기를 등록했는지 확인합니다.
     @Override
     public boolean isExistInUserWishList(Long itemId, String userEmail) {
         QUser user = QUser.user;
@@ -189,106 +189,230 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
         return fetchOne != null;
     }
 
+
+    // 홈 > 태그 검색 포함한 경우
     @Override
-    public Page<ThumbnailItemDto> searchMainPageItems_tag(Pageable pageable, SearchCondition condition, String userEmail) {
+    public Slice<ThumbnailItemDto> searchMainPageItems_tag_Cursor(
+            Long lastItemId, int pageSize,
+            SearchCondition condition, String userEmail) {
+
+        List<Item> combinedItems = new ArrayList<>();
+
+        // 키워드 null 체크
+        String keyword = condition.getKeyword();
+        if (keyword != null && !keyword.isBlank()) {
+            combinedItems.addAll(fetchItemsByRecommendedTag(keyword, condition.getSanrioCharacters(), lastItemId));
+            combinedItems.addAll(fetchItemsByUserDefinedTag(keyword, condition.getSanrioCharacters(), lastItemId));
+        }
+
+        // 정렬 및 페이징 처리
+        combinedItems.sort(Comparator.comparing(Item::getId).reversed());
+
+        boolean hasNext = combinedItems.size() > pageSize;
+        if (hasNext) {
+            combinedItems = combinedItems.subList(0, pageSize);
+        }
+
+        List<Long> itemIds = combinedItems.stream().map(Item::getId).collect(Collectors.toList());
+        Map<Long, List<String>> likers = getLikerTuplesByItemIds(itemIds); // 상품 찜 등록한 회원조회
+
+        List<ThumbnailItemDto> dtoList = combinedItems.stream()
+                .map(item -> convertToThumbnailItemDto(item, likers, userEmail))
+                .collect(Collectors.toList());
+
+        return new SliceImpl<>(dtoList, PageRequest.of(0, pageSize), hasNext);
+    }
+
+    // item의 recoomendTag 필드를 검색조건으로
+    private List<Item> fetchItemsByRecommendedTag(String keyword,SanrioCharacters sanrioCharacters, Long lastItemId) {
+        QItem item = QItem.item;
+        QRecommendedTag recommendedTag = QRecommendedTag.recommendedTag;
+
+        List<TagOption> tagOptions = TagOption.fromNameKor(keyword);
+        if (tagOptions.isEmpty()) return Collections.emptyList();
+
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(recommendedTag.tagOption.in(tagOptions));
+        if (sanrioCharacters != null) {
+            builder.and(item.sanrioCharacters.eq(sanrioCharacters));
+        }
+        if (lastItemId != null) {
+            builder.and(item.id.lt(lastItemId));
+        }
+        // BooleanBuilder에서 만들어진 whereClause를 쿼리로 변환하여 로그 출력
+        log.info("Generated whereClause: " + builder.toString());
+
+        return queryFactory
+                .selectFrom(item)
+                .leftJoin(item.recommendedTagList, recommendedTag)
+                .where(builder)
+                .orderBy(item.id.desc())
+                .fetch();
+    }
+
+    // item의 UserDefinedTag 필드를 검색조건으로
+    private List<Item> fetchItemsByUserDefinedTag(String keyword,SanrioCharacters sanrioCharacters, Long lastItemId) {
+        QItem item = QItem.item;
+        QUserDefinedTag userDefinedTag = QUserDefinedTag.userDefinedTag;
+
+        BooleanBuilder builder = new BooleanBuilder();
+        builder.and(userDefinedTag.name.eq(keyword));
+        if (sanrioCharacters!= null) {
+            builder.and(item.sanrioCharacters.eq(sanrioCharacters));
+        }
+        if (lastItemId != null) {
+            builder.and(item.id.lt(lastItemId));
+        }
+
+        log.info("Generated whereClause: " + builder.toString());
+
+        return queryFactory
+                .selectFrom(item)
+                .leftJoin(item.userDefinedTagList, userDefinedTag)
+                .where(builder)
+                .orderBy(item.id.desc())
+                .fetch();
+    }
+
+
+
+    // 홈> 검색 ( 검색조건이 없는 경우 cusor 페이징만 처리한다.)
+    @Override
+    public Slice<ThumbnailItemDto> searchMainPageItems_Cursor(
+            Long lastItemId, int pageSize,
+            SearchCondition condition, String userEmail) {
 
         QItem item = QItem.item;
         QUserDefinedTag userDefinedTag = QUserDefinedTag.userDefinedTag;
         QRecommendedTag recommendedTag = QRecommendedTag.recommendedTag;
 
-        BooleanBuilder whereClause = buildTagSearchConditionForMainPage(condition, item, recommendedTag, userDefinedTag);
-
-        List<Item> items = queryFactory.selectFrom(item)
-                .distinct()
-                .leftJoin(item.recommendedTagList, recommendedTag)
-                .leftJoin(item.userDefinedTagList, userDefinedTag)
-                .where(whereClause)
-                .offset(pageable.getOffset())
-                .limit(pageable.getPageSize())
-                .fetch();
-
-        long total = queryFactory.select(item.id.countDistinct())
-                .from(item)
-                .leftJoin(item.recommendedTagList, recommendedTag)
-                .leftJoin(item.userDefinedTagList, userDefinedTag)
-                .where(whereClause)
-                .fetchOne();
-
-        // 상품에 찜하기를 누른 유저 정보를 찾음.
-        Map<Long, List<String>> likers = getLikerTuplesByItemIds();
-
-        // Map ItemTemp to ItemDto
-        List<ThumbnailItemDto> finalItems = items.stream()
-                .map(itemTemp -> convertToThumbnailItemDto(itemTemp, likers, userEmail))
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(finalItems, pageable, total);
-    }
-
-    private static BooleanBuilder buildTagSearchConditionForMainPage(SearchCondition condition, QItem item, QRecommendedTag recommendedTag, QUserDefinedTag userDefinedTag) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
-        if (condition.getSanrioCharacters() != null) {
-            whereClause.and(item.sanrioCharacters.eq(condition.getSanrioCharacters()));
+        // lastItemId 조건을 whereClause에 추가
+        if (lastItemId != null) {
+            whereClause = whereClause.and(item.id.lt(lastItemId));
         }
 
-        // 태그 검색 조건을 가져옵니다
-        if (condition.getKeyword() != null && !condition.getKeyword().isBlank()) {
-            List<TagOption> tagOptions = TagOption.fromNameKor(condition.getKeyword() );
-
-            if (!tagOptions.isEmpty()) {
-                whereClause.and(
-                        recommendedTag.tagOption.in(tagOptions)
-                                .or(userDefinedTag.name.contains(condition.getKeyword() ))
-                );
-            } else {
-                // 태그 목록이 비어 있어도 유저가 직접 입력한 값에 따라 검색되게
-                whereClause.and(userDefinedTag.name.contains(condition.getKeyword() ));
-            }
-        }
-
-        return whereClause;
-    }
+        // BooleanBuilder에서 만들어진 whereClause를 쿼리로 변환하여 로그 출력
+        log.info("Generated whereClause: " + whereClause.toString());
 
 
-    @Override
-    public Page<ThumbnailItemDto> searchByCategory_tag(Pageable pageable, CategoryCondition condition, String userEmail) {
-        QItem item = QItem.item;
-        QUserDefinedTag userDefinedTag = QUserDefinedTag.userDefinedTag;
-        QRecommendedTag recommendedTag = QRecommendedTag.recommendedTag;
-
-        // 카테고리 페이지에서 태그 검색 조건을 포함하는 경우
-        BooleanBuilder whereClause = buildCategoryAndTagSearchCondition(condition, item, recommendedTag, userDefinedTag);
-
-        List<Item> items = queryFactory.selectFrom(item)
+        List<Item> items = queryFactory
+                .selectFrom(item)
                 .distinct()
                 .leftJoin(item.recommendedTagList, recommendedTag)
                 .leftJoin(item.userDefinedTagList, userDefinedTag)
                 .where(whereClause)
-                .offset(pageable.getOffset())   // Set the starting point of the results
-                .limit(pageable.getPageSize())  // Set the number of results to return
+                .orderBy(item.id.desc())
+                .limit(pageSize + 1) // +1로 다음 페이지 유무 판단
                 .fetch();
 
-        long total = queryFactory.select(item.id.countDistinct())
-                .from(item)
-                .leftJoin(item.recommendedTagList, recommendedTag)
-                .leftJoin(item.userDefinedTagList, userDefinedTag)
-                .where(whereClause)
-                .fetchOne();
+        boolean hasNext = items.size() > pageSize;
 
-        // 상품에 찜하기를 누른 유저 정보를 찾음.
-        Map<Long, List<String>> likers = getLikerTuplesByItemIds();
+        if (hasNext) {
+            items.remove(pageSize); // 초과 아이템 제거
+        }
 
-        // Map ItemTemp to ItemDto
-        List<ThumbnailItemDto> finalItems = items.stream()
+        List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
+        Map<Long, List<String>> likers = getLikerTuplesByItemIds(itemIds);
+
+        List<ThumbnailItemDto> dtoList = items.stream()
                 .map(itemTemp -> convertToThumbnailItemDto(itemTemp, likers, userEmail))
                 .collect(Collectors.toList());
 
-        return new PageImpl<>(finalItems, pageable, total);
+        return new SliceImpl<>(dtoList, PageRequest.of(0, pageSize), hasNext);
     }
 
 
-    private static BooleanBuilder buildCategoryAndTagSearchCondition(CategoryCondition condition, QItem item, QRecommendedTag recommendedTag, QUserDefinedTag userDefinedTag) {
+    /**
+     * 카테고리 페이지 > 태그 검색을 하는 경우
+     * (선택된 카테고리에서) + 태그 검색
+     */
+    @Override
+    public Slice<ThumbnailItemDto> search_category_with_tag(
+            Long lastItemId, int pageSize,
+            CategoryCondition condition, String userEmail) {
+
+        List<Item> combinedItems = new ArrayList<>();
+
+        // 키워드 null 체크
+        String keyword = condition.getTag();
+        if (keyword != null && !keyword.isBlank()) {
+            combinedItems.addAll(fetchItemsByRecommendedTag(keyword, condition.getSanrioCharacters(), lastItemId));
+            combinedItems.addAll(fetchItemsByUserDefinedTag(keyword, condition.getSanrioCharacters(), lastItemId));
+        }
+
+        // 정렬 및 페이징 처리
+        combinedItems.sort(Comparator.comparing(Item::getId).reversed());
+
+        boolean hasNext = combinedItems.size() > pageSize;
+        if (hasNext) {
+            combinedItems = combinedItems.subList(0, pageSize);
+        }
+
+
+        List<Long> itemIds = combinedItems.stream().map(Item::getId).collect(Collectors.toList());
+        Map<Long, List<String>> likers = getLikerTuplesByItemIds(itemIds); // 찜 등록한 회원조회
+
+        List<ThumbnailItemDto> dtoList = combinedItems.stream()
+                .map(item -> convertToThumbnailItemDto(item, likers, userEmail))
+                .collect(Collectors.toList());
+
+        return new SliceImpl<>(dtoList, PageRequest.of(0, pageSize), hasNext);
+    }
+
+
+    /**
+     * 카테고리 페이지 >
+     * (선택된 카테고리로 커서 페이징)
+     */
+
+    @Override
+    public Slice<ThumbnailItemDto> search_category_no_tag(Long lastItemId, int pageSize, CategoryCondition condition, String userEmail) {
+
+        QItem item = QItem.item;
+        QUserDefinedTag userDefinedTag = QUserDefinedTag.userDefinedTag;
+        QRecommendedTag recommendedTag = QRecommendedTag.recommendedTag;
+
+        BooleanBuilder whereClause = buildCategoryAndTagSearchCondition(condition, item);
+
+        // lastItemId 조건을 whereClause에 추가
+        if (lastItemId != null) {
+            whereClause = whereClause.and(item.id.lt(lastItemId));
+        }
+
+        // BooleanBuilder에서 만들어진 whereClause를 쿼리로 변환하여 로그 출력
+        log.info("Generated whereClause: " + whereClause.toString());
+
+
+        List<Item> items = queryFactory
+                .selectFrom(item)
+                .distinct()
+                .leftJoin(item.recommendedTagList, recommendedTag)
+                .leftJoin(item.userDefinedTagList, userDefinedTag)
+                .where(whereClause)
+                .orderBy(item.id.desc())
+                .limit(pageSize + 1) // +1로 다음 페이지 유무 판단
+                .fetch();
+
+        boolean hasNext = items.size() > pageSize;
+
+        if (hasNext) {
+            items.remove(pageSize); // 초과 아이템 제거
+        }
+
+        List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
+        Map<Long, List<String>> likers = getLikerTuplesByItemIds(itemIds); // 찜 등록한 회원조회
+
+        List<ThumbnailItemDto> dtoList = items.stream()
+                .map(itemTemp -> convertToThumbnailItemDto(itemTemp, likers, userEmail))
+                .collect(Collectors.toList());
+
+        return new SliceImpl<>(dtoList, PageRequest.of(0, pageSize), hasNext);
+    }
+
+
+    private static BooleanBuilder buildCategoryAndTagSearchCondition(CategoryCondition condition, QItem item) {
         BooleanBuilder whereClause = new BooleanBuilder();
 
         if (condition.getMainCategory() != null) {
@@ -303,44 +427,29 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
             whereClause.and(item.sanrioCharacters.eq(condition.getSanrioCharacters()));
         }
 
-        // 태그 검색 조건을 가져옵니다
-        if (condition.getTag() != null && !condition.getTag().isBlank()) {
-            List<TagOption> tagOptions = TagOption.fromNameKor(condition.getTag());
-
-            if (!tagOptions.isEmpty()) {
-                whereClause.and(
-                        recommendedTag.tagOption.in(tagOptions)
-                                .or(userDefinedTag.name.contains(condition.getTag()))
-                );
-            } else {
-                // 태그 목록이 비어 있어도 유저가 직접 입력한 값에 따라 검색되게
-                whereClause.and(userDefinedTag.name.contains(condition.getTag()));
-            }
-        }
-
         return whereClause;
     }
 
 
-    @Override
-    public  Map<Long, List<String>> getLikerTuplesByItemIds() {
+    // 상품 ID별 찜 등록한 회원정보 조회
+    public Map<Long, List<String>> getLikerTuplesByItemIds(List<Long> itemIds) {
 
         List<Tuple> likerTuples = queryFactory
                 .select(wishItem.item.id, user.email)
                 .from(wishItem)
                 .join(wishItem.wishList, wishList)
                 .join(wishList.user, user)
+                .where(wishItem.item.id.in(itemIds))
                 .fetch();
 
-        Map<Long, List<String>> likers = likerTuples.stream()
+        return likerTuples.stream()
                 .filter(tuple -> tuple.get(wishItem.item.id) != null && tuple.get(user.email) != null)
                 .collect(Collectors.groupingBy(
                         tuple -> tuple.get(wishItem.item.id),
                         Collectors.mapping(tuple -> tuple.get(user.email), Collectors.toList())
                 ));
-
-        return likers;
     }
+
 
 
     @Override

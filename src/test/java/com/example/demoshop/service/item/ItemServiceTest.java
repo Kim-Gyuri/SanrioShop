@@ -1,7 +1,6 @@
 package com.example.demoshop.service.item;
 
-import com.example.demoshop.controller.dto.CategoryCondition;
-import com.example.demoshop.controller.dto.SearchCondition;
+
 import com.example.demoshop.domain.item.Item;
 import com.example.demoshop.domain.item.common.MainCategory;
 import com.example.demoshop.domain.item.common.SanrioCharacters;
@@ -14,7 +13,6 @@ import com.example.demoshop.request.item.CreateItemRequest;
 import com.example.demoshop.request.item.UpdateItemRequest;
 import com.example.demoshop.repository.item.ItemRepository;
 import com.example.demoshop.repository.users.UserRepository;
-import com.example.demoshop.response.item.ThumbnailItemDto;
 
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
@@ -22,9 +20,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -118,74 +114,6 @@ class ItemServiceTest {
             itemRepository.findById(id).orElseThrow(ItemNotFoundException::new);
         });
 
-    }
-
-
-    @Test
-    @DisplayName("상품명으로 검색했을 때 - 성능 테스트")
-    void searchByName() throws IOException {
-        // given
-        User user = getUploaderDto();
-        dummyItemData(user);
-
-        String targetName = "포차코 복조리";
-        Pageable pageable = PageRequest.of(0, 20);
-        SearchCondition condition = new SearchCondition();
-        condition.setKeyword(targetName);
-
-        log.info("더미 데이터 총 상품 개수: {}", itemRepository.count());
-
-        long startTime = System.currentTimeMillis();
-        Page<ThumbnailItemDto> result = itemService.searchItems(pageable, condition, user.getEmail());
-        long endTime = System.currentTimeMillis();
-
-        long duration = endTime - startTime;
-        log.info("상품명으로 검색했을 때 걸린 시간: {}", duration);
-
-        // 검색된 총 아이템 수와 페이지 수를 확인
-        log.info("검색된 총 아이템 수: {}", result.getTotalElements());
-        log.info("검색된 페이지 수: {}", result.getTotalPages());
-
-        List<ThumbnailItemDto> content = result.getContent();
-
-        for (int i = 0; i < content.size(); i++) {
-            ThumbnailItemDto thumbnailItemDto = content.get(i);
-            log.info("검색결과 {}번 = {}", i + 1, thumbnailItemDto.getNameKor());
-        }
-
-    }
-
-    @Test
-    @DisplayName("테마으로 검색했을 때 - 성능 테스트")
-    void search_with_tag() throws IOException {
-        // given
-        User user = getUploaderDto();
-        dummyItemData(user);
-
-        Pageable pageable = PageRequest.of(0, 10);
-        CategoryCondition condition = new CategoryCondition();
-        condition.setSanrioCharacters(SanrioCharacters.POCHACCO);
-        condition.setMainCategory(MainCategory.ACCESSORIES);
-        condition.setSubCategory(SubCategory.POUCH_CASE);
-        condition.setTag("복조리");
-
-        long startTime = System.currentTimeMillis();
-        Page<ThumbnailItemDto> result = itemService.search_fetch_category(pageable, condition, user.getEmail());
-        long endTime = System.currentTimeMillis();
-
-        long duration = endTime - startTime;
-        log.info("테마로 검색했을 때 걸린 시간: {}", duration);
-
-        // 검색된 총 아이템 수와 페이지 수를 확인
-        log.info("검색된 총 아이템 수: {}", result.getTotalElements());
-        log.info("검색된 페이지 수: {}", result.getTotalPages());
-
-        List<ThumbnailItemDto> content = result.getContent();
-
-        for (int i = 0; i < content.size(); i++) {
-            ThumbnailItemDto thumbnailItemDto = content.get(i);
-            log.info("검색결과 {}번 = {}", i + 1, thumbnailItemDto.getNameKor());
-        }
     }
 
 
@@ -388,6 +316,7 @@ class ItemServiceTest {
         Long id = itemService.createItem(user, createItemRequest, generateMultipartFileList());
         return id;
     }
+
 
     private void createItemDummy(User user,String nameKor, List<String> tags, List<TagOption> tagOptions, SanrioCharacters sanrio, MainCategory main, SubCategory sub) throws IOException {
         CreateItemRequest request = CreateItemRequest.builder()

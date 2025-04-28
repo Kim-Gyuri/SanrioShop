@@ -6,7 +6,6 @@ import com.example.demoshop.request.users.NicknameUpdate;
 import com.example.demoshop.request.users.SignupRequest;
 import com.example.demoshop.response.users.ProfileResponse;
 import com.example.demoshop.response.users.UserTokenDto;
-import com.example.demoshop.service.users.JwtLoginService;
 import com.example.demoshop.service.users.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +29,6 @@ import static com.example.demoshop.utils.constants.ResponseConstants.OK;
 public class UserApiController {
 
     private final UserService userService;
-    private final JwtLoginService loginService;
 
     @GetMapping("/user-email/{email}/exists")
     public ResponseEntity<Boolean> checkEmailDuplicate(@PathVariable("email") String email) {
@@ -53,7 +51,7 @@ public class UserApiController {
     @PostMapping("/login")
     public ResponseEntity<UserTokenDto> login(@RequestBody LoginRequest loginRequest, HttpServletResponse response) {
 
-        UserTokenDto loginDto = loginService.login(loginRequest, response);
+        UserTokenDto loginDto = userService.login(loginRequest, response);
 
         log.info("token={}", loginDto.getToken());
         return ResponseEntity.status(HttpStatus.OK).header(loginDto.getToken()).body(loginDto);

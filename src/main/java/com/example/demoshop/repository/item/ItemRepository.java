@@ -1,7 +1,6 @@
 package com.example.demoshop.repository.item;
 
 import com.example.demoshop.domain.item.Item;
-import com.example.demoshop.domain.item.common.SanrioCharacters;
 import jakarta.persistence.LockModeType;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,12 +26,27 @@ public interface ItemRepository extends JpaRepository<Item, Long>, SearchItemRep
     Optional<Item> findByNameKor(String itemName);
 
 
-    // 산리오 캐릭터 + 상품명 검색(FT 방식)
-    @Query("SELECT i FROM Item i WHERE i.nameKor LIKE %:keyword% AND i.sanrioCharacters = :character")
-    List<Item> searchByKeywordAndCharacter(@Param("keyword") String keyword, @Param("character") SanrioCharacters character);
 
-    // 상품명 검색(FT 방식)
-    @Query(value = "SELECT * FROM item WHERE MATCH(name_kor) AGAINST(:keyword IN NATURAL LANGUAGE MODE)", nativeQuery = true)
-    List<Item> searchByItemName(@Param("keyword") String keyword);
+    // 상품명(FT 검색) + 캐릭터 선택 (Cursor 페이징)
+    @Query(value =
+            "SELECT * " +
+                    "FROM item " +
+                    "WHERE MATCH(name_kor) AGAINST(:keyword IN BOOLEAN MODE) " +
+                    "AND sanrio_characters = :character " +
+                    "AND (:lastItemId IS NULL OR item_id < :lastItemId) " +  // lastItemId가 null일 경우 조건 생략
+                    "ORDER BY item_id DESC " +
+                    "LIMIT :limit", nativeQuery = true)
+    List<Item> searchByKeywordAndCharacterWithCursor(@Param("keyword") String keyword, @Param("character") String character,
+                                                     @Param("lastItemId") Long lastItemId, @Param("limit") int limit);
+
+
+    // 상품명(FT 검색) (Cursor 페이징)
+    @Query(value = "SELECT * FROM item " +
+            "WHERE MATCH(name_kor) AGAINST(:keyword IN NATURAL LANGUAGE MODE) " +
+            "AND (:lastItemId IS NULL OR item_id > :lastItemId) " + // lastItemId가 null일 경우 조건 생략
+            "ORDER BY item_id DESC " +
+            "LIMIT :limit", nativeQuery = true)
+    List<Item> searchByItemNameWithCursor(@Param("keyword") String keyword, @Param("lastItemId") Long lastItemId, @Param("limit") int limit);
+
 
 }

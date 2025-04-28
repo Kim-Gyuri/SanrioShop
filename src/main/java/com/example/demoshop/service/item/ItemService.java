@@ -29,13 +29,10 @@ import com.example.demoshop.repository.users.UserRepository;
 import com.example.demoshop.request.sale.CreateNotificationRequest;
 import com.example.demoshop.response.item.*;
 import com.example.demoshop.response.sale.UserNotificationDto;
-import com.querydsl.core.Tuple;
 import lombok.RequiredArgsConstructor;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -174,56 +171,74 @@ public class ItemService {
 
 
     /**
-     * 홈 > 카테고리 메뉴 선택했을 때, 상품 정렬
+     * 홈 > 카테고리 메뉴 선택했을 때,
      */
     @Transactional(readOnly = true)
-    public Page<ThumbnailItemDto> search_fetch_category(Pageable pageable, CategoryCondition condition, String userEmail) {
+    public Slice<ThumbnailItemDto> search_fetch_category(Long lastItemId, int pageSize, CategoryCondition condition, String userEmail) {
+        if (condition.getTag() != null && !condition.getTag().isBlank()) {
+            return itemRepository.search_category_with_tag(lastItemId, pageSize, condition, userEmail);
+        }
 
-        return itemRepository.searchByCategory_tag(pageable, condition, userEmail);
+        return itemRepository.search_category_no_tag(lastItemId, pageSize, condition, userEmail);
+       // return itemRepository.searchByCategory_tag(pageable, condition, userEmail);
     }
 
 
-
-    /*
-     * 홈 > 검색 (산리오 + 상품명 + 태그)
+    /**
+     * 홈 > 검색
+     * 상품명으로 검색
+     * 태그로 검색
+     * 산리오 캐릭터 검색
      */
     @Transactional(readOnly = true)
-    public Page<ThumbnailItemDto> searchItems(Pageable pageable, SearchCondition condition, String userEmail) {
+    public Slice<ThumbnailItemDto> search_mainPage(Long lastItemId, int pageSize, SearchCondition condition, String userEmail) {
 
+        // 상품명/태그/산리코 캐릭터 검색조건 없이 커서 페이징만.
         if (condition.getSearchType() == null) {
-            condition.setSearchType(SearchType.TAG);
+            return itemRepository.searchMainPageItems_Cursor(lastItemId, pageSize, condition, userEmail);
+          //  return itemRepository.searchMainPageItems_Cursor(lastItemId, pageSize, condition, userEmail);
         }
 
-        if (SearchType.ITEM_NAME.equals(condition.getSearchType())) {
-            return searchMainPageItems_name(pageable, condition, userEmail);
+        // 태그 검색
+        if (condition.getSearchType().equals(SearchType.TAG)) {
+            return itemRepository.searchMainPageItems_tag_Cursor(lastItemId, pageSize, condition, userEmail);
         }
 
-        return itemRepository.searchMainPageItems_tag(pageable, condition, userEmail);
+        // 상품명 검색
+        return search_mainPage_name_with_character(lastItemId, pageSize, condition, userEmail);
     }
 
-    // 홈 > 상품명 검색
+
+    // 홈 > 상품명 + 산리오 검색조건
     @Transactional(readOnly = true)
-    public Page<ThumbnailItemDto> searchMainPageItems_name(Pageable pageable, SearchCondition condition, String userEmail) {
+    public Slice<ThumbnailItemDto> search_mainPage_name_with_character(Long lastItemId, int pageSize, SearchCondition condition, String userEmail) {
         List<Item> items = new ArrayList<>();
 
         // FT itemName 검색 (when no characters are selected)
         if (condition.getSanrioCharacters() == null) {
-            items = itemRepository.searchByItemName(condition.getKeyword());
+            items = itemRepository.searchByItemNameWithCursor(condition.getKeyword(), lastItemId, pageSize + 1);
         } else {
             // (FT itemName + Sanrio) 검색
-            items = itemRepository.searchByKeywordAndCharacter(condition.getKeyword(), condition.getSanrioCharacters());
+            items = itemRepository.searchByKeywordAndCharacterWithCursor(condition.getKeyword(), condition.getSanrioCharacters().name(), lastItemId, pageSize + 1);
         }
 
-        // (상품에 대한 찜등록 정보 조회)
-        Map<Long, List<String>> likers = itemRepository.getLikerTuplesByItemIds();
+        boolean hasNext = items.size() > pageSize;
 
-        // Convert to ThumbnailItemDto
+        if (hasNext) {
+            items.remove(pageSize); // 초과된 데이터 하나 제거
+        }
+
+        List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
+        Map<Long, List<String>> likers = itemRepository.getLikerTuplesByItemIds(itemIds); // 상품별 찜 등록 정보 조회
+
         List<ThumbnailItemDto> finalItems = items.stream()
                 .map(itemTemp -> convertToThumbnailItemDto(itemTemp, likers, userEmail))
                 .collect(Collectors.toList());
 
-        return new PageImpl<>(finalItems, pageable, finalItems.size());
+        return new SliceImpl<>(finalItems, PageRequest.of(0, pageSize), hasNext);
     }
+
+
 
     /**
      * 홈 > 상품 선택했을 때, 상품 상세 페이지

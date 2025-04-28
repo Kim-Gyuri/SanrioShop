@@ -15,11 +15,7 @@ import com.example.demoshop.service.item.ItemService;
 import com.example.demoshop.service.item.TagService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.PagedModel;
+import org.springframework.data.domain.Slice;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -43,22 +39,16 @@ public class ItemApiController {
     private final ItemService itemService;
     private final ItemImgService itemImgService;
     private final TagService tagService;
-    private final PagedResourcesAssembler<ThumbnailItemDto> pagedResourcesAssembler;
 
-
-    /**
-     * 홈 > (산리오 구분/태그/상품명)조건으로 검색
-     */
     @GetMapping("/items/list")
-    public PagedModel<EntityModel<ThumbnailItemDto>> itemList(@AuthenticationPrincipal User user, Pageable pageable,
-                                                              @RequestParam(required = false, name= "sanrio") SanrioCharacters sanrioCharacters,
-                                                              @RequestParam(required = false, name = "keyword") String keyword,
-                                                              @RequestParam(required = false, name = "searchType") SearchType searchType) {
+    public Slice<ThumbnailItemDto> mainPage_search(@AuthenticationPrincipal User user,
+                                              @RequestParam(required = false, name = "lastItemId") Long lastItemId, @RequestParam(name = "page") int pageSize,
+                                              @RequestParam(required = false, name= "sanrio") SanrioCharacters sanrioCharacters,
+                                              @RequestParam(required = false, name = "keyword") String keyword,
+                                              @RequestParam(required = false, name = "searchType") SearchType searchType) {
         SearchCondition condition = new SearchCondition(sanrioCharacters, searchType, keyword);
 
-        Page<ThumbnailItemDto> response = itemService.searchItems(pageable, condition, user.getEmail());
-
-        return pagedResourcesAssembler.toModel(response);
+        return itemService.search_mainPage(lastItemId, pageSize, condition, user.getEmail());
     }
 
 
@@ -67,7 +57,8 @@ public class ItemApiController {
      * 태그 검색도 가능
      */
     @GetMapping("/items/category")
-    public PagedModel<EntityModel<ThumbnailItemDto>> testPage_search_category(@AuthenticationPrincipal User user, Pageable pageable,
+    public Slice<ThumbnailItemDto> categoryPage_search(@AuthenticationPrincipal User user,
+                                                            @RequestParam(required = false, name = "lastItemId") Long lastItemId, @RequestParam(name = "page") int pageSize,
                                                                               @RequestParam(required = false, name= "sanrio") SanrioCharacters sanrioCharacters,
                                                                               @RequestParam(required = false, name = "mainCategory") MainCategory mainCategory,
                                                                               @RequestParam(required = false, name = "subCategory") SubCategory subCategory,
@@ -75,9 +66,7 @@ public class ItemApiController {
 
         CategoryCondition condition = new CategoryCondition(sanrioCharacters, mainCategory, subCategory, tag);
 
-        Page<ThumbnailItemDto> response = itemService.search_fetch_category(pageable, condition, user.getEmail());
-
-       return pagedResourcesAssembler.toModel(response);
+        return itemService.search_fetch_category(lastItemId, pageSize, condition, user.getEmail());
     }
 
 

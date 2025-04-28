@@ -28,7 +28,7 @@ public class HomeController {
 
     @GetMapping("/view/home")
     public String viewHome() {
-        return "home/home";
+        return "home/homeV2";
     }
 
     @GetMapping("/view/category")
