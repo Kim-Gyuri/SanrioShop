@@ -288,6 +288,10 @@ public class SearchItemRepositoryImpl implements SearchItemRepository {
 
         BooleanBuilder whereClause = new BooleanBuilder();
 
+        if (condition.getSanrioCharacters() != null) {
+            whereClause.and(item.sanrioCharacters.eq(condition.getSanrioCharacters()));
+        }
+
         // lastItemId 조건을 whereClause에 추가
         if (lastItemId != null) {
             whereClause = whereClause.and(item.id.lt(lastItemId));

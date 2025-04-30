@@ -193,18 +193,19 @@ public class ItemService {
     @Transactional(readOnly = true)
     public Slice<ThumbnailItemDto> search_mainPage(Long lastItemId, int pageSize, SearchCondition condition, String userEmail) {
 
-        // 상품명/태그/산리코 캐릭터 검색조건 없이 커서 페이징만.
-        if (condition.getSearchType() == null) {
+        // 상품명/태그/산리코 캐릭터 검색조건 없이 커서 페이징 하거나
+        // 산리오 캐릭터 선택조건 추가하거나
+        if (condition.getKeyword() == null) {
             return itemRepository.searchMainPageItems_Cursor(lastItemId, pageSize, condition, userEmail);
           //  return itemRepository.searchMainPageItems_Cursor(lastItemId, pageSize, condition, userEmail);
         }
 
-        // 태그 검색
+        // 태그 검색 + 산리오 검색 조건
         if (condition.getSearchType().equals(SearchType.TAG)) {
             return itemRepository.searchMainPageItems_tag_Cursor(lastItemId, pageSize, condition, userEmail);
         }
 
-        // 상품명 검색
+        // 상품명 + 산리오 검색 조건
         return search_mainPage_name_with_character(lastItemId, pageSize, condition, userEmail);
     }
 
