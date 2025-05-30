@@ -37,7 +37,7 @@ public class SaleApiController {
     private final NotificationRepository notificationRepository;
 
 
-    // 주문요청
+    // 주문요청!
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/orders")
     public ResponseEntity<Void> addWishList(@AuthenticationPrincipal User user, @RequestBody IdRequest idRequest) {
@@ -45,6 +45,16 @@ public class SaleApiController {
 
         return CREATED;
     }
+
+    // 주문요청 (비관적 락 아닌 경우, 테스트 용도)
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping(value = "/order/test")
+    public ResponseEntity<Void> addWishList_test(@AuthenticationPrincipal User user, @RequestBody IdRequest idRequest) {
+        saleItemService.order(user.getEmail(), idRequest.getId());
+
+        return CREATED;
+    }
+
 
     // 주문상품 조회 (by 구매 회원)
     @GetMapping("/orders")

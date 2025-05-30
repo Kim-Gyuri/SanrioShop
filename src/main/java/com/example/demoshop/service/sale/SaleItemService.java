@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -64,6 +65,57 @@ public class SaleItemService {
         return itemRepository.findOrderListByUser(pageable, buyerEmail);
     }
 
+    // 테스트 비교용 - 비관적 락 없을 경우
+    @Transactional
+    public Long order(String buyerEmail, Long itemId) {
+
+        Item item = itemRepository.findById(itemId).orElseThrow(ItemNotFoundException::new);
+        log.info("Found item with ID: {}", itemId);
+
+        if (saleItemRepository.existsByItem(item)) {
+            throw new SaleItemAlreadyExistsException();
+        }
+
+        log.info("Attempting to contact trade for buyer: {}, itemId: {}", buyerEmail, itemId);
+
+        User buyer = userRepository.findByEmail(buyerEmail)
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 회원입니다."));
+        log.info("Found buyer: {}", buyer.getEmail());
+
+
+        Long saleId = createSaleItem(buyer, item);
+        log.info("Created sale item with ID: {}", saleId);
+
+        // 주문관련 알림 메시지 생성
+        createOrderNotification(buyerEmail, item, buyer);
+
+        return saleId;
+    }
+
+
+    // 테스트 용도로 -> 주문 확인
+    @Transactional(readOnly = true)
+    public List<SaleItemResponse> getSaleItems(Long itemId) {
+        return saleItemRepository.findAll().stream()
+                .filter(sale -> sale.getItem().getId().equals(itemId))
+                .map(sale -> new SaleItemResponse(
+                        sale.getBuyer().getEmail(),
+                        sale.getItem().getNameKor(),
+                        sale.getPrice()))
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<SaleItemResponse> getAll() {
+        return saleItemRepository.findAll().stream()
+                .map(sale -> new SaleItemResponse(
+                        sale.getBuyer().getEmail(),
+                        sale.getItem().getNameKor(),
+                        sale.getPrice()))
+                .collect(Collectors.toList());
+    }
+
+
     /**
         주문요청 처리
      */
@@ -87,6 +139,7 @@ public class SaleItemService {
 
             Long saleId = createSaleItem(buyer, item);
             log.info("Created sale item with ID: {}", saleId);
+            log.info("order user email = {}", buyer.getEmail());
 
             // 주문관련 알림 메시지 생성
             createOrderNotification(buyerEmail, item, buyer);

@@ -19,6 +19,7 @@ import com.example.demoshop.service.item.ItemService;
 import lombok.extern.slf4j.Slf4j;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @Slf4j
@@ -55,6 +59,14 @@ class SaleItemServiceTest {
     SaleItemRepository saleItemRepository;
 
 
+    @BeforeEach
+    void clean() {
+        saleItemRepository.deleteAll();
+        itemRepository.deleteAll();
+        userRepository.deleteAll();
+    }
+
+
 
     @AfterEach
     void cleanAfter() {
@@ -62,6 +74,7 @@ class SaleItemServiceTest {
         itemRepository.deleteAll();
         userRepository.deleteAll();
     }
+
 
 
     @Transactional
@@ -86,6 +99,105 @@ class SaleItemServiceTest {
         log.info("구매자 이메일 :" + saleItemDetail.getBuyerEmail());
         log.info("판매 상품명 :" + saleItemDetail.getNameKor());
         log.info("결제금액 :" + saleItemDetail.getPrice());
+    }
+
+
+    @Test
+    @DisplayName("1000명 중 1명만 주문 성공하는지 테스트 - 락 없이")
+    void concurrentOrder_shouldSucceedForOnlyOneUser() throws InterruptedException, IOException {
+        // given
+        User uploader = getUserDto("uploader");
+        Long itemId = uploadItem(uploader);
+
+        int threadCount = 1000;
+        ExecutorService executor = Executors.newFixedThreadPool(threadCount);
+        CountDownLatch latch = new CountDownLatch(threadCount);
+
+        List<User> buyers = IntStream.range(0, threadCount)
+                .mapToObj(i -> getUserDto("buyer" + i))
+                .collect(Collectors.toList());
+
+        // when
+        for (int i = 0; i < threadCount; i++) {
+            final int index = i;
+            executor.submit(() -> {
+                try {
+                    saleItemService.order(buyers.get(index).getEmail(), itemId);
+                    log.info("✅ 주문 성공: {}", buyers.get(index).getEmail());
+                } catch (Exception e) {
+                    log.warn("❌ 주문 실패: {}", buyers.get(index).getEmail(), e);
+                } finally {
+                    latch.countDown();
+                }
+            });
+        }
+
+        latch.await();
+        executor.shutdown();
+
+        // then
+        List<SaleItemResponse> sameItemSales = saleItemService.getSaleItems(itemId);
+
+        log.info("DB 기준 같은 아이템 주문 수: {}", sameItemSales.size());
+        sameItemSales.forEach(sale -> log.info("성공한 구매자: {}", sale.getBuyerEmail()));
+
+        assertEquals(1, sameItemSales.size(), "DB에도 해당 아이템에 대한 주문은 1건만 존재해야 합니다");
+
+
+        List<SaleItemResponse> all = saleItemService.getAll();
+        for (SaleItemResponse saleItem : all) {
+            log.info("order info  user= {}, itemName= {}", saleItem.getBuyerEmail(), saleItem.getNameKor());
+        }
+    }
+
+
+
+    @Test
+    @DisplayName("동시 거래 요청 - 1000명 중 1명 성공, 나머지는 실패")
+    void concurrentContactTrade_success_withTenBuyers() throws InterruptedException, IOException {
+
+        // given
+        User uploader = getUserDto("uploader");
+
+        Long itemId = uploadItem(uploader);
+        Item item = itemRepository.findById(itemId).orElseThrow(ItemNotFoundException::new);
+
+        int threadCount = 1000;
+        AtomicInteger failCount = new AtomicInteger(0); // 실패 카운터
+        ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
+
+        CountDownLatch startLatch = new CountDownLatch(1);
+        CountDownLatch endLatch = new CountDownLatch(threadCount);
+
+        // 10명의 구매자 생성
+        List<User> buyers = new ArrayList<>();
+        for (int i = 0; i < threadCount; i++) {
+            buyers.add(getUserDto("buyer" + i));
+        }
+
+        // when
+        for (int i = 0; i < threadCount; i++) {
+            final int index = i;
+            executorService.submit(() -> {
+                try {
+                    startLatch.await(); // 모든 스레드 동시에 시작
+                    saleItemService.contactTrade(buyers.get(index).getEmail(), item.getId());
+                } catch (Exception e) {
+                    failCount.incrementAndGet();
+                } finally {
+                    endLatch.countDown();
+                }
+            });
+        }
+
+        startLatch.countDown(); // 모든 스레드 시작
+        endLatch.await(); // 모든 스레드 종료 대기
+
+        // then
+       log.info("실패 요청 수 ={}", failCount.get());
+        assertEquals(threadCount - 1, failCount.get()); // 1명만 성공해야 함
+
+        executorService.shutdown();
     }
 
 
@@ -118,6 +230,7 @@ class SaleItemServiceTest {
             try {
                 startLatch.await(); // 모든 스레드가 시작 지점을 기다림
                 saleItemService.contactTrade(buyer1.getEmail(), item.getId());// 첫 번째 구매자가 주문 시도
+
             } catch (Exception e) {
                 failCount.incrementAndGet(); // 실패 시 카운터 증가
             } finally {
@@ -142,6 +255,9 @@ class SaleItemServiceTest {
 
         startLatch.countDown(); // 모든 스레드가 동시에 시작하도록 래치를 낮춤
         endLatch.await(); // 모든 스레드의 작업이 끝날 때까지 대기
+
+
+
 
         // then
         // 한 개의 주문만 성공했는지 확인
